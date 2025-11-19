@@ -15,7 +15,7 @@ pi0是一个视觉-语言-动作（VLA）模型，专为通用机器人控制而
 
 ## pi0的模型、数据集及代码仓拉取
 ### pi0模型下载
-pi0模型已经在huggingface上进行开源，进入下面的网站，进行pi0模型相关文件的下载：
+pi0模型已经在huggingface上进行开源，进入下面的网站，进行pi0模型相关文件的下载,在lerobot代码仓根目录下新建pi0_model文件夹，下载网站中对应的文件至pi0_model文件夹中：
 ```
 https://huggingface.co/zabphd/pi0_model_for_koch_v1_1/tree/main
 
@@ -39,7 +39,7 @@ https://huggingface.co/zabphd/pi0_model_for_koch_v1_1/tree/main
 
 
 ### koch机械臂抓取任务数据集下载
-pi0模型的可选数据集之一为基于koch-v1.1六自由度机械臂的真机数据集danaaubakirova/koch_test，执行的任务为抓取桌子上的方块到盒子中。该koch数据集已经开源至huggingface上，进入下面的网站，进行koch数据集相关文件的下载，并注意本地数据集目录树与网站上进行对应：
+pi0模型的可选数据集之一为基于koch-v1.1六自由度机械臂的真机数据集danaaubakirova/koch_test，执行的任务为抓取桌子上的方块到盒子中。该koch数据集已经开源至huggingface上，进入下面的网站，进行koch数据集相关文件的下载，并注意本地数据集目录树与网站上进行对应。在lerobot代码仓根目录下新建koch_test文件夹，下载网站中对应的文件至koch_test文件夹中：
 
 ```bash
 # danaaubakirova/koch_test数据集可视化网址链接如下：
@@ -68,6 +68,11 @@ git clone https://github.com/huggingface/lerobot.git
 cd lerobot
 # 为了能够对齐昇腾迁移过程中的代码版本，避免代码仓更新带来的差异，需要执行下述操作，将代码仓回退到指定老版本(Date: Tue Mar 4 10:53:01 2025 +0100)：
 git reset --hard a27411022dd5f3ce6ebb75b460376cb844699df8
+
+
+# 拉取昇腾开源项目代码仓中pi0相关文件,cann-recipes-embodied-intelligence代码仓根目录与lerobot代码仓根目录属于同级别目录
+cd ../
+git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
 ```
 <br>
 
@@ -81,12 +86,13 @@ git reset --hard a27411022dd5f3ce6ebb75b460376cb844699df8
 conda create -y -n lerobot python=3.10
 conda activate lerobot
 
-# 修改pyproject.toml中的transformers、torch、torchvision版本
+# 修改lerobot代码仓pyproject.toml文件中的datasets、transformers、torch、torchvision版本，避免代码运行中出错
+datasets==3.3.2
 transformers==4.49.0
 torch==2.1.0
 torchvision==0.16.0
 
-# 安装lerobot：
+# 安装lerobot
 pip install -e .
 ```
 
@@ -102,21 +108,28 @@ source xxxx/Ascend/latest/bin/setenv.bash
 torch-npu==2.1.0.post12  # 网址为https://pypi.org/project/torch-npu/2.1.0.post12/
 torchair==0.1  # 安装方式网址（适配torch-npu==2.1.0.post12）：https://gitee.com/ascend/torchair/blob/master/README.md
 ```
+
+### 整体环境包版本验证及保证
+在安装环境的最后环节，执行下面的指令，来保证关键包的存在及版本正确。
+```bash
+pip install numpy==1.26.4
+pip install pytest==8.4.2
+```
 <br>
 
 
 ## pi0在昇腾上的运行步骤
 
-### 将pi0_model模型文件夹及koch_test数据集文件夹放置到lerobot文件夹下,如下所示：
+- 将pi0_model模型文件夹及koch_test数据集文件夹放置到lerobot文件夹下,如下所示：
 ```bash
-.
 ├── koch_test                               # koch机械臂抓取任务数据集,符合lerobot数据集格式
 ├── pi0_model                               # koch机械臂抓取任务预训练pi0模型
 
 ```
 
-### 拉取本项目代码仓中pi0文件夹，将其中的文件复制到lerobot文件夹中（同名文件需要进行替换，如README.md）。其中，pi0文件中代码目录树如下所示：
+- 拉取本项目代码仓中pi0文件夹，将其中的文件复制到lerobot文件夹中（同名文件需要进行替换，如modeling_pi0.py、paligemma_with_expert.py、README.md）。其中，昇腾适配代码仓中的pi0文件中代码目录树如下所示：
 ```bash
+# 查看cann-recipes-embodied-intelligence/models/pi0文件夹中代码目录树情况
 ├── pi0
 |   ├── modeling_pi0.py
 |   ├── paligemma_with_expert.py
@@ -126,9 +139,9 @@ torchair==0.1  # 安装方式网址（适配torch-npu==2.1.0.post12）：https:/
 ```
 
 
-### 替换lerobot代码仓中的文件来适配昇腾
+- 替换lerobot代码仓中的文件来适配昇腾
 ```bash
-# 替换modeling_pi0.py这个文件，以适配昇腾平台pi0推理，并支持进行固定高斯噪声加载进行不同处理器平台精度对比。文件在原始lerobot代码仓目录树中的位置如下所示：
+# 替换modeling_pi0.py和paligemma_with_expert.py文件，以适配昇腾平台pi0推理，并支持进行固定高斯噪声加载进行不同处理器平台精度对比。文件在原始lerobot代码仓目录树中的位置如下所示：
 ├── lerobot
 |   ├── common
 |   |   ├── policies
@@ -140,9 +153,8 @@ torchair==0.1  # 安装方式网址（适配torch-npu==2.1.0.post12）：https:/
 ```
 
 
-### 经过上述的复制及替换操作，pi0适配昇腾的最终代码目录树如下所示
+- 检查整体代码目录树，经过上述的复制及替换操作，pi0适配昇腾的最终代码目录树如下所示
 ```bash
-.
 ├── examples
 ├── koch_test                                 # koch机械臂抓取任务数据集,符合lerobot数据集格式
 ├── lerobot                                   # pi0模型训练及推理框架
@@ -168,7 +180,7 @@ conda activate lerobot
 # 设置 Ascend CANN 环境变量，xxxx为CANN包的实际安装目录
 source xxxx/Ascend/latest/bin/setenv.bash
 chmod +x run_pi0_inference.sh
-./run_pi0_inference.sh koch_test pi0_model 10 20
+./run_pi0_inference.sh koch_test pi0_model 10 100
 ```
 
 其中，基于上述过程，得到昇腾上pi0的单次推理时间及结果如下所示（详细的优化过程介绍见cann-recipes-embodied-intelligence/docs/models/pi0/README.md）：
@@ -183,3 +195,18 @@ chmod +x run_pi0_inference.sh
 - 基于pi0模型推理得到的整段轨迹六关节角度序列(维度:50x6)，通过获取koch机械臂的物理DH参数，执行koch机械臂正运动学运算，得到koch机械臂末端执行器中心的实际位姿（位置x-y-z + 姿态r-p-y），然后通过ATE(absolute error)方法进行二范数计算，得到昇腾平台上koch机械臂末端位姿的误差参数，误差参考范围如下所示：
     - 位置ATE误差参考范围：[0, +0.03]m
     - 姿态ATE误差参考范围：[0, +0.2 ]rad
+<br>
+
+
+## Citation
+```
+@misc{black2024pi0,
+      title={$\pi$0: A Vision-Language-Action Flow Model for General Robot Control}, 
+      author={Kevin Black and Noah Brown and Danny Driess and Adnan Esmail and Michael Equi and Chelsea Finn and Niccolo Fusai and Lachy Groom and Karol Hausman and Brian Ichter and Szymon Jakubczak and Tim Jones and Liyiming Ke and Sergey Levine and Adrian Li-Bell and Mohith Mothukuri and Suraj Nair and Karl Pertsch and Lucy Xiaoyang Shi and James Tanner and Quan Vuong and Anna Walling and Haohuan Wang and Ury Zhilinsky},
+      year={2024},
+      eprint={2410.24164},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2410.24164}
+}
+```
