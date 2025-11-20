@@ -22,6 +22,9 @@ cann-recipes-embodied-intelligence仓库旨在针对具身智能业务中的典�
 ├── models                                      # 模型脚本目录
 |  ├── pi0                                      # Pi0的模型脚本及执行配置
 │  └── ...
+└── contrib                                     # 社区用户贡献的模型与文档目录
+|  ├── README.md
+│  └── ...
 └── CONTRIBUTION.md
 └── DISCLAIMER.md
 └── LICENSE
@@ -33,5 +36,6 @@ cann-recipes-embodied-intelligence仓库旨在针对具身智能业务中的典�
 
 - [贡献指南](./CONTRIBUTION.md)
 - [许可证]
+
     cann-recipes-embodied-intelligence仓涉及的模型，如模型目录下存在License的以该License为准。如模型目录下不存在License的，遵循Apache 2.0许可证，对应协议文本可查阅[LICENSE](./LICENSE)
 - [免责声明](./DISCLAIMER.md)
