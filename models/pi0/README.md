@@ -92,7 +92,8 @@ transformers==4.49.0
 torch==2.1.0
 torchvision==0.16.0
 
-# 安装lerobot
+# 回到lerobot根目录，安装lerobot
+cd lerobot
 pip install -e .
 ```
 
@@ -105,7 +106,7 @@ pip install -e .
 source xxxx/Ascend/latest/bin/setenv.bash
 
 # 需要注意的一些pip安装的npu相关packages版本如下：
-torch-npu==2.1.0.post12  # 网址为https://pypi.org/project/torch-npu/2.1.0.post12/
+torch-npu==2.1.0.post12  # 网址为https://pypi.org/project/torch-npu/2.1.0.post12/，可直接执行 pip install torch-npu==2.1.0.post12 进行安装
 torchair==0.1  # 安装方式网址（适配torch-npu==2.1.0.post12）：https://gitee.com/ascend/torchair/blob/master/README.md
 ```
 
@@ -114,6 +115,9 @@ torchair==0.1  # 安装方式网址（适配torch-npu==2.1.0.post12）：https:/
 ```bash
 pip install numpy==1.26.4
 pip install pytest==8.4.2
+pip install decorator==5.2.1
+pip install scipy==1.15.3
+pip install transformers==4.49.0
 ```
 <br>
 
