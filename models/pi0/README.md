@@ -14,6 +14,23 @@ pi0是一个视觉-语言-动作（VLA）模型，专为通用机器人控制而
 
 
 ## pi0的模型、数据集及代码仓拉取
+### 代码仓拉取
+基于lerobot机器人通用数据采集、模型训练-推理框架，进行pi0的数据集采集、训练、推理。lerobot代码仓拉取步骤如下：
+
+```bash
+git clone https://github.com/huggingface/lerobot.git
+cd lerobot
+# 为了能够对齐昇腾迁移过程中的代码版本，避免代码仓更新带来的差异，需要执行下述操作，将代码仓回退到指定老版本(Date: Tue Mar 4 10:53:01 2025 +0100)：
+git reset --hard a27411022dd5f3ce6ebb75b460376cb844699df8
+
+
+# 拉取昇腾开源项目代码仓中pi0相关文件,cann-recipes-embodied-intelligence代码仓根目录与lerobot代码仓根目录属于同级别目录
+cd ../
+git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
+```
+<br>
+
+
 ### pi0模型下载
 pi0模型已经在huggingface上进行开源，进入下面的网站，进行pi0模型相关文件的下载,在lerobot代码仓根目录下新建pi0_model文件夹，下载网站中对应的文件至pi0_model文件夹中：
 ```
@@ -33,7 +50,6 @@ https://huggingface.co/zabphd/pi0_model_for_koch_v1_1/tree/main
 |   ├── tokenizer_config.json               # 分词器超参（最大长度、是否添加前缀空格、token 类型等）
 |   ├── tokenizer.json                      # 快速分词器二进制表（BPE/WordPiece 词汇表 + 合并规则）
 |   ├── tokenizer.model                     # 旧格式词汇表（与 tokenizer.json 二选一，兼容 Transformers 加载）
-
 ```
 <br>
 
@@ -59,26 +75,10 @@ https://huggingface.co/datasets/danaaubakirova/koch_test/tree/main
 |   |   |   ├── observation.images.phone    # 包含phone视角的机械臂任务场景视频，共51个回合视频，每秒30帧
 |   ├── README.md                           # 包含数据集结构等基础介绍
 ```
-
-### 代码仓拉取
-基于lerobot机器人通用数据采集、模型训练-推理框架，进行pi0的数据集采集、训练、推理。lerobot代码仓拉取步骤如下：
-
-```bash
-git clone https://github.com/huggingface/lerobot.git
-cd lerobot
-# 为了能够对齐昇腾迁移过程中的代码版本，避免代码仓更新带来的差异，需要执行下述操作，将代码仓回退到指定老版本(Date: Tue Mar 4 10:53:01 2025 +0100)：
-git reset --hard a27411022dd5f3ce6ebb75b460376cb844699df8
-
-
-# 拉取昇腾开源项目代码仓中pi0相关文件,cann-recipes-embodied-intelligence代码仓根目录与lerobot代码仓根目录属于同级别目录
-cd ../
-git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
-```
 <br>
 
 
 ## pi0在昇腾A2上的运行环境配置
-
 ### 与昇腾服务器无关的环境配置
 基于conda虚拟环境进行环境配置。
 ```bash
