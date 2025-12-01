@@ -7,13 +7,14 @@
 
 中文译文：π0: 一个用于通用机器人控制的视觉-语言-动作流匹配模型
 
-### 项目介绍
+### 功能介绍
 
 pi0是一个视觉-语言-动作（VLA）模型，专为通用机器人控制而设计。它基于预训练的视觉语言模型（VLM），结合流匹配（flow matching）机制，能够生成高频连续动作，实现对复杂、灵巧机器人任务的精准控制。整合OXE开源数据集和自有数据集，总计超过10,000小时机器人操作数据。在叠衣服、桌面清理、装盒等复杂任务上表现优异，零样本和微调设置下均显著优于现有基线方法（OpenVLA、Octo、ACT等）。成功完成5-20分钟的长时序多阶段任务，展现出强大的鲁棒性和泛化能力。
+
 <br>
 
 
-## pi0的模型、数据集及代码仓拉取
+## pi0的相关代码仓拉取、模型和数据集下载
 ### 代码仓拉取
 基于lerobot机器人通用数据采集、模型训练-推理框架，进行pi0的数据集采集、训练、推理。lerobot代码仓拉取步骤如下：
 
@@ -23,172 +24,79 @@ cd lerobot
 # 为了能够对齐昇腾迁移过程中的代码版本，避免代码仓更新带来的差异，需要执行下述操作，将代码仓回退到指定老版本(Date: Tue Mar 4 10:53:01 2025 +0100)：
 git reset --hard a27411022dd5f3ce6ebb75b460376cb844699df8
 
+# 在lerobot代码仓根目录下新建放置pi0模型和koch_test数据集的文件夹，分别为pi0_model文件夹和koch_test文件夹。
+mkdir -p pi0_model koch_test
 
-# 拉取昇腾开源项目代码仓中pi0相关文件,cann-recipes-embodied-intelligence代码仓根目录与lerobot代码仓根目录属于同级别目录
-cd ../
+# 拉取昇腾开源项目代码仓中pi0相关文件,cann-recipes-embodied-intelligence代码仓根目录与lerobot代码仓根目录属于同级别目录。
+cd ../  # 回到lerobot根目录下
 git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
+
+# 一次性执行下面的所有指令,将上一步拉取下来的cann-recipes-embodied-intelligence文件夹中的文件，替换和复制到lerobot代码仓的对应目录中。
+cp cann-recipes-embodied-intelligence/models/pi0/{modeling_pi0.py,paligemma_with_expert.py} ../lerobot/lerobot/common/policies/pi0/ && cp cann-recipes-embodied-intelligence/models/pi0/{pyproject.toml,run_pi0_inference.sh,test_pi0_on_ascend.py} ../lerobot/
 ```
+完成上述操作之后，最终lerobot根目录中代码目录树详见【附录：lerobot根目录代码目录树】（点击可跳转）：
+[附录：lerobot根目录代码目录树](#lerobot根目录代码目录树)
+
 <br>
 
 
-### pi0模型下载
-pi0模型已经在huggingface上进行开源，进入下面的网站，进行pi0模型相关文件的下载,在lerobot代码仓根目录下新建pi0_model文件夹，下载网站中对应的文件至pi0_model文件夹中：
-```
-https://huggingface.co/zabphd/pi0_model_for_koch_v1_1/tree/main
+### pi0模型和koch_test数据集下载
+- pi0模型已经在huggingface上进行开源，是基于lerobot进行训练的pytorch版本模型。在lerobot代码仓根目录下新建pi0_model文件夹，下载[pi0模型 (单击此处进入模型下载网页)](https://aihub.caict.ac.cn/models/LeRobot/pi0/files/main)网站中所有的文件至pi0_model文件夹中，并注意本地模型目录树与网站上进行对应。文件较大，可以手动下载，也可以参考下面的指令进行下载：
+  ```bash
+    cd lerobot  # 首先进入lerobot根目录下
+    sudo apt install git-lfs -y
+    git lfs install
+    git clone https://aihub.caict.ac.cn/models/LeRobot/pi0.git pi0_model
+  ```
 
-模型文件目录树如下所示：
-├── pi0_model                               # koch机械臂抓取任务预训练模型
-|   ├── added_tokens.json                   # 新增特殊 token 列表（<pad>、<eos>、动作占位符等）
-|   ├── config.json                         # pi0 整体配置（VLM 主干 + Action Expert 参数量、流匹配步数、动作维度等）
-|   ├── model-00001-of-00003.safetensors    # 第 1 个权重分片
-|   ├── model-00002-of-00003.safetensors    # 第 2 个权重分片
-|   ├── model-00003-of-00003.safetensors    # 第 3 个权重分片
-|   ├── model.safetensors                   # 完整权重文件
-|   ├── model.safetensors.index.json        # 权重分片索引（>2 GB 时才会出现，指向若干 shard 文件）
-|   ├── README.md                           # 模型使用说明、输入输出格式、微调示例
-|   ├── special_tokens_map.json             # 特殊 token → token_id 的映射表
-|   ├── tokenizer_config.json               # 分词器超参（最大长度、是否添加前缀空格、token 类型等）
-|   ├── tokenizer.json                      # 快速分词器二进制表（BPE/WordPiece 词汇表 + 合并规则）
-|   ├── tokenizer.model                     # 旧格式词汇表（与 tokenizer.json 二选一，兼容 Transformers 加载）
-```
-<br>
-
-
-### koch机械臂抓取任务数据集下载
-pi0模型的可选数据集之一为基于koch-v1.1六自由度机械臂的真机数据集danaaubakirova/koch_test，执行的任务为抓取桌子上的方块到盒子中。该koch数据集已经开源至huggingface上，进入下面的网站，进行koch数据集相关文件的下载，并注意本地数据集目录树与网站上进行对应。在lerobot代码仓根目录下新建koch_test文件夹，下载网站中对应的文件至koch_test文件夹中：
-
-```bash
-# danaaubakirova/koch_test数据集可视化网址链接如下：
-https://huggingface.co/spaces/lerobot/visualize_dataset?path=%2Fdanaaubakirova%2Fkoch_test%2Fepisode_0
-
-# danaaubakirova/koch_test数据集文件下载网址链接如下：
-https://huggingface.co/datasets/danaaubakirova/koch_test/tree/main
-
-数据集目录树如下所示：
-├── koch_test
-|   ├── data                                # 包含机械臂的本体状态及时间戳等信息
-|   |   ├── chunk-000                       # 包含51个完整机械臂抓取方块回合
-|   ├── meta                                # 包含数据集中的一些机械臂关节配置、数据格式、数据维度、多回合任务配置等
-|   ├── videos                              # 包含多视角相机拍摄的视频
-|   |   ├── chunk-000                       # 包含laptop及phone这两个视角的完整机械臂回合视频
-|   |   |   ├── observation.images.laptop   # 包含laptop视角的机械臂任务场景视频，共51个回合视频，每秒30帧
-|   |   |   ├── observation.images.phone    # 包含phone视角的机械臂任务场景视频，共51个回合视频，每秒30帧
-|   ├── README.md                           # 包含数据集结构等基础介绍
-```
+- koch_test数据集为pi0模型对应的数据集之一，是基于koch-v1.1六自由度机械臂采集的真机数据集，执行的任务为抓取桌子上的方块到盒子中。在lerobot代码仓根目录下新建koch_test文件夹，下载[koch_test数据集 (单击此处进入数据集下载网页)](https://huggingface.co/datasets/danaaubakirova/koch_test/tree/main)网站中所有的文件至koch_test文件夹中，并注意本地数据集目录树与网站上进行对应。文件较大，可以手动下载，也可以参考下面的指令进行下载：
+  ```bash
+    cd lerobot  # 首先进入lerobot根目录下
+    git lfs install
+    git clone https://huggingface.co/datasets/danaaubakirova/koch_test
+  ```
 <br>
 
 
 ## pi0在昇腾A2上的运行环境配置
 ### 与昇腾服务器无关的环境配置
-基于conda虚拟环境进行环境配置。
 ```bash
-# 创建conda虚拟环境
+# 创建运行环境
 conda create -y -n lerobot python=3.10
 conda activate lerobot
 
-# 修改lerobot代码仓pyproject.toml文件中的datasets、transformers、torch、torchvision版本，避免代码运行中出错
-datasets==3.3.2
-transformers==4.49.0
-torch==2.1.0
-torchvision==0.16.0
-
-# 回到lerobot根目录，安装lerobot
+# 回到lerobot根目录，安装lerobot。
 cd lerobot
 pip install -e .
 ```
 
-### 与昇腾服务器相关的环境配置
-涉及到昇腾CANN安装包（本案例使用CANN的版本为8.3.RC1）及对应的pytorch-npu版本安装。其中，CANN相关工具包的安装及环境配置，请参考 [CANN 软件安装指南](https://www.hiascend.com/document/detail/zh/canncommercial/80RC22/softwareinst/instg/instg_0000.html?Mode=PmIns&OS=Ubuntu&Software=cannToolKit) 安装对应的驱动、固件和软件包。在安装深度学习框架时，选择安装PyTorch框架，并安装配套的torch_npu包。
+### 与昇腾平台相关的环境配置
+安装CANN软件包。本样例的编译执行依赖CANN开发套件包（cann-toolkit）与CANN二进制算子包（cann-kernels），支持的CANN软件版本为`CANN 8.3.RC1`。
+请从[软件包下载地址](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.3.RC1)下载`Ascend-cann-toolkit_8.3.RC1_linux-aarch64.run`与`Ascend-cann-kernels-910b_8.3.RC1_linux-aarch64.run`软件包，并参考[CANN安装文档](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/83RC1alpha002/softwareinst/instg/instg_0001.html?Mode=PmIns&OS=Debian&Software=cannToolKit)依次进行安装。
 
-需要注意每次终端创建时，注意source一下CANN安装路径的setenv.bash。其他的，需要注意transformers、torch、torch-npu、torchvision对应cuda/npu版本的pip安装，具体版本如下：
 ```bash
-# xxxx为CANN包的实际安装目录
-source xxxx/Ascend/latest/bin/setenv.bash
+# xxxx为CANN包的实际安装目录，注意每次新建终端时，source一下setenv.bash。
+source xxxx/ascend-toolkit/setenv.bash
 
-# 需要注意的一些pip安装的npu相关packages版本如下：
-torch-npu==2.1.0.post12  # 网址为https://pypi.org/project/torch-npu/2.1.0.post12/，可直接执行 pip install torch-npu==2.1.0.post12 进行安装
-torchair==0.1  # 安装方式网址（适配torch-npu==2.1.0.post12）：https://gitee.com/ascend/torchair/blob/master/README.md
+# 在上述运行环境中继续安装对应版本torch-npu
+pip install torch-npu==2.1.0.post12
 ```
 
-### 整体环境包版本验证及保证
-在安装环境的最后环节，执行下面的指令，来保证关键包的存在及版本正确。
-```bash
-pip install numpy==1.26.4
-pip install pytest==8.4.2
-pip install decorator==5.2.1
-pip install scipy==1.15.3
-pip install transformers==4.49.0
-```
 <br>
 
 
-## pi0在昇腾上的运行步骤
-
-- 将pi0_model模型文件夹及koch_test数据集文件夹放置到lerobot文件夹下,如下所示：
-```bash
-├── koch_test                               # koch机械臂抓取任务数据集,符合lerobot数据集格式
-├── pi0_model                               # koch机械臂抓取任务预训练pi0模型
-
-```
-
-- 拉取本项目代码仓中pi0文件夹，将其中的文件复制到lerobot文件夹中（同名文件需要进行替换，如modeling_pi0.py、paligemma_with_expert.py、README.md）。其中，昇腾适配代码仓中的pi0文件中代码目录树如下所示：
-```bash
-# 查看cann-recipes-embodied-intelligence/models/pi0文件夹中代码目录树情况
-├── pi0
-|   ├── modeling_pi0.py
-|   ├── paligemma_with_expert.py
-|   ├── README.md
-|   ├── run_pi0_inference.sh
-|   ├── test_pi0_on_ascend.py
-```
-
-
-- 替换lerobot代码仓中的文件来适配昇腾
-```bash
-# 替换modeling_pi0.py和paligemma_with_expert.py文件，以适配昇腾平台pi0推理，并支持进行固定高斯噪声加载进行不同处理器平台精度对比。文件在原始lerobot代码仓目录树中的位置如下所示：
-├── lerobot
-|   ├── common
-|   |   ├── policies
-|   |   |   ├── pi0 
-|   |   |   |   ├── modeling_pi0.py
-|   |   |   |   ├── paligemma_with_expert.py
-...
-├── README.md
-```
-
-
-- 检查整体代码目录树，经过上述的复制及替换操作，pi0适配昇腾的最终代码目录树如下所示
-```bash
-├── examples
-├── koch_test                                 # koch机械臂抓取任务数据集,符合lerobot数据集格式
-├── lerobot                                   # pi0模型训练及推理框架
-|   ├── common
-|   |   ├── policies
-|   |   |   ├── pi0 
-|   |   |   |   ├── modeling_pi0.py           # pi0的模型训练及推理代码
-|   |   |   |   ├── paligemma_with_expert.py  # pi0的模型训练及推理代码
-├── pi0_model                                 # koch机械臂抓取任务预训练pi0模型
-├── outputs
-└── tests
-└── README.md                                 # 昇腾上运行pi0推理的环境配置及操作指导
-└── run_pi0_inference.sh                      # 昇腾上运行pi0推理过程一键启动脚本
-└── test_pi0_on_ascend.py                     # 昇腾上运行pi0推理过程
-```
-
-
 ### pi0在昇腾上的推理步骤
+运行下面的代码，即可自动加载koch机械臂数据集，进行pi0模型推理，打印推理性能及机器人动作
 ```bash
-# 将run_pi0_inference.sh及test_pi0_on_ascend.py放至主目录下，运行下面的代码，即可自动进行torch-npu的加载及转换，自动加载koch机械臂数据集，进行模型推理，得到推理结果(koch机械臂整段轨迹六关节角度序列(维度:50x6))并进行保存。
 cd lerobot
 conda activate lerobot
-# 设置 Ascend CANN 环境变量，xxxx为CANN包的实际安装目录
-source xxxx/Ascend/latest/bin/setenv.bash
+source xxxx/ascend-toolkit/setenv.bash
 chmod +x run_pi0_inference.sh
 ./run_pi0_inference.sh koch_test pi0_model 10 100
 ```
 
-其中，基于上述过程，得到昇腾上pi0的单次推理时间及结果如下所示（详细的优化过程介绍见cann-recipes-embodied-intelligence/docs/models/pi0/README.md）：
-- 推理性能：从开箱性能的670 ms，下降至80 ms，性能达到开箱性能的8.3倍，达到了预期的推理时间性能优化目标。
+基于上述运行过程，得到pi0的单次推理时间及结果如下所示（详细的优化过程介绍见 [pi0 优化说明文档](docs/models/pi0/README.md)）：
+- 推理性能：单次推理时间下降至80 ms，达到了预期的推理时间性能优化目标。
 - 推理结果：单次推理结果为50组机械臂关节角度序列，shape为[50,6]。
 <br>
 
@@ -213,4 +121,25 @@ chmod +x run_pi0_inference.sh
       primaryClass={cs.RO},
       url={https://arxiv.org/abs/2410.24164}
 }
+
+```
+<br>
+
+
+## 附录
+### lerobot根目录代码目录树
+- 检查整体代码目录树，经过上述的复制及替换操作，pi0适配昇腾的lerobot根目录中的最终相关代码目录树如下所示
+```bash
+├── koch_test                                 # koch机械臂抓取任务数据集,符合lerobot数据集格式
+├── lerobot                                   # pi0模型训练及推理框架
+|   ├── common
+|   |   ├── policies
+|   |   |   ├── pi0
+|   |   |   |   ├── modeling_pi0.py           # pi0的模型训练及推理代码
+|   |   |   |   ├── paligemma_with_expert.py  # pi0的模型训练及推理代码
+├── pi0_model                                 # koch机械臂抓取任务预训练pi0模型
+└── pyproject.toml                            # 运行环境第三方包的安装版本
+└── README.md                                 # 昇腾上运行pi0推理的环境配置及操作指导
+└── run_pi0_inference.sh                      # 昇腾上运行pi0推理过程一键启动脚本
+└── test_pi0_on_ascend.py                     # 昇腾上运行pi0推理过程
 ```

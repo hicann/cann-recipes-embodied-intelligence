@@ -59,13 +59,15 @@ def parse_args():
     parser.add_argument("--checkpoint", default="pi0_model", help="path to pi0 checkpoint")
     parser.add_argument("--device", default=os.getenv("DEVICE", "npu"), help="npu for Ascend")
     parser.add_argument("--warmup", type=int, default=10, help="warmup iterations")
-    parser.add_argument("--iters", type=int, default=10, help="benchmark iterations")
+    parser.add_argument("--iters", type=int, default=100, help="benchmark iterations")
+    parser.add_argument("--batch_size", type=int, default=1, help="batch size for inference")
+    parser.add_argument("--episodes_idx", type=int, default=25, help="episode index to test")
+    parser.add_argument("--target_sample_idx", type=int, default=0, help="target sample index in each episode")
     return parser.parse_args()
 
 
 # 加载数据集并获取指定样本
-def load_data(device, dataset, batch_size):
-    target_sample_idx = 0  # 每个episode中要获取的样本索引
+def load_data(device, dataset, batch_size, target_sample_idx):
     dataloader = torch.utils.data.DataLoader(
         dataset,
         num_workers=0,
@@ -103,11 +105,12 @@ def main(args):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     dataset_repo_id = os.path.join(script_dir, args.dataset)
 
-    dataset = LeRobotDataset(dataset_repo_id, episodes=[25])
+    dataset = LeRobotDataset(dataset_repo_id, episodes=[args.episodes_idx])
     
     # Load dataset
-    batch_size = 1  # 批处理大小
-    batch = load_data(device, dataset, batch_size)
+    batch_size = args.batch_size  # 批处理大小
+    target_sample_idx = args.target_sample_idx  # 每个episode中要获取的样本索引
+    batch = load_data(device, dataset, batch_size, target_sample_idx)
 
     cfg = PreTrainedConfig.from_pretrained(args.checkpoint)
 

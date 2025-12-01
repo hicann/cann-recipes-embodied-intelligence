@@ -511,8 +511,8 @@ class PI0FlowMatching(nn.Module):
         self.action_time_mlp_in = nn.Linear(self.config.proj_width * 2, self.config.proj_width)
         self.action_time_mlp_out = nn.Linear(self.config.proj_width, self.config.proj_width)
 
-        self.embed_and_paligemma_compile = torch.compile(
-            self.embed_and_paligemma,
+        self.compiled_embed_and_model_forward = torch.compile(
+            self.embed_and_model_forward,
             dynamic=False,
             fullgraph=True,
             backend=npu_backend
@@ -695,7 +695,7 @@ class PI0FlowMatching(nn.Module):
         losses = F.mse_loss(u_t, v_t, reduction="none")
         return losses
 
-    def embed_and_paligemma(self, noise, images, img_masks, lang_tokens, lang_masks, device):
+    def embed_and_model_forward(self, noise, images, img_masks, lang_tokens, lang_masks):
         prefix_embs, prefix_pad_masks, prefix_att_masks = self.embed_prefix(
             images, img_masks, lang_tokens, lang_masks
         )
@@ -713,10 +713,10 @@ class PI0FlowMatching(nn.Module):
         )
 
         dt = -1.0 / self.config.num_steps
-        dt = torch.tensor(dt, dtype=torch.float32, device=device)
+        dt = torch.tensor(dt, dtype=torch.float32, device=noise.device)
 
         x_t = noise
-        time = torch.tensor(1.0, dtype=torch.float32, device=device)
+        time = torch.tensor(1.0, dtype=torch.float32, device=noise.device)
         
         self.batch_size, self.prefix_len = prefix_pad_masks.shape[:2]
         self.prefix_offsets = torch.sum(prefix_pad_masks, dim=-1)[:, None]
@@ -744,8 +744,8 @@ class PI0FlowMatching(nn.Module):
             x_t,
             time,
             past_key_values
-        ) = self.embed_and_paligemma_compile(
-            noise, images, img_masks, lang_tokens, lang_masks, device
+        ) = self.compiled_embed_and_model_forward(
+            noise, images, img_masks, lang_tokens, lang_masks
         )
 
         for step in range(self.config.num_steps):
