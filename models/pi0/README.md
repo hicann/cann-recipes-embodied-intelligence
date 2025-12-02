@@ -24,36 +24,36 @@ cd lerobot
 # 为了能够对齐昇腾迁移过程中的代码版本，避免代码仓更新带来的差异，需要执行下述操作，将代码仓回退到指定老版本(Date: Tue Mar 4 10:53:01 2025 +0100)：
 git reset --hard a27411022dd5f3ce6ebb75b460376cb844699df8
 
-# 在lerobot代码仓根目录下新建放置pi0模型和koch_test数据集的文件夹，分别为pi0_model文件夹和koch_test文件夹。
-mkdir -p pi0_model koch_test
-
 # 拉取昇腾开源项目代码仓中pi0相关文件,cann-recipes-embodied-intelligence代码仓根目录与lerobot代码仓根目录属于同级别目录。
 cd ../  # 回到lerobot根目录下
 git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
 
 # 一次性执行下面的所有指令,将上一步拉取下来的cann-recipes-embodied-intelligence文件夹中的文件，替换和复制到lerobot代码仓的对应目录中。
-cp cann-recipes-embodied-intelligence/models/pi0/{modeling_pi0.py,paligemma_with_expert.py} ../lerobot/lerobot/common/policies/pi0/ && cp cann-recipes-embodied-intelligence/models/pi0/{pyproject.toml,run_pi0_inference.sh,test_pi0_on_ascend.py} ../lerobot/
+cp cann-recipes-embodied-intelligence/models/pi0/{modeling_pi0.py,paligemma_with_expert.py} lerobot/lerobot/common/policies/pi0/ && cp cann-recipes-embodied-intelligence/models/pi0/{pyproject.toml,run_pi0_inference.sh,test_pi0_on_ascend.py} lerobot/
 ```
-完成上述操作之后，最终lerobot根目录中代码目录树详见【附录：lerobot根目录代码目录树】（点击可跳转）：
-[附录：lerobot根目录代码目录树](#lerobot根目录代码目录树)
+完成上述操作之后，最终lerobot根目录中代码目录树详见[附录：lerobot根目录代码目录树](#lerobot根目录代码目录树)
 
 <br>
 
 
 ### pi0模型和koch_test数据集下载
-- pi0模型已经在huggingface上进行开源，是基于lerobot进行训练的pytorch版本模型。在lerobot代码仓根目录下新建pi0_model文件夹，下载[pi0模型 (单击此处进入模型下载网页)](https://aihub.caict.ac.cn/models/LeRobot/pi0/files/main)网站中所有的文件至pi0_model文件夹中，并注意本地模型目录树与网站上进行对应。文件较大，可以手动下载，也可以参考下面的指令进行下载：
+- pi0模型权重的pytorch版本已经开源，下载[pi0模型权重文件](https://modelscope.cn/models/lerobot/pi0/files/01189b1ffb1c9f2f9622c3b1ae773cd884bfd84f)至pi0_model文件夹中。文件较大，可以参考下面的指令进行下载：
   ```bash
-    cd lerobot  # 首先进入lerobot根目录下
-    sudo apt install git-lfs -y
-    git lfs install
-    git clone https://aihub.caict.ac.cn/models/LeRobot/pi0.git pi0_model
+  cd lerobot  # 首先进入lerobot根目录下
+  sudo apt install git-lfs -y
+  git lfs install --skip-smudge
+  git clone https://www.modelscope.cn/models/lerobot/pi0.git pi0_model
+  cd pi0_model
+  git lfs install --force
+  GIT_LFS_SKIP_SMUDGE=1 git reset --hard 01189b1ffb1c9f2f9622c3b1ae773cd884bfd84f
+  git lfs pull
   ```
 
-- koch_test数据集为pi0模型对应的数据集之一，是基于koch-v1.1六自由度机械臂采集的真机数据集，执行的任务为抓取桌子上的方块到盒子中。在lerobot代码仓根目录下新建koch_test文件夹，下载[koch_test数据集 (单击此处进入数据集下载网页)](https://huggingface.co/datasets/danaaubakirova/koch_test/tree/main)网站中所有的文件至koch_test文件夹中，并注意本地数据集目录树与网站上进行对应。文件较大，可以手动下载，也可以参考下面的指令进行下载：
+- koch_test数据集为pi0模型对应的数据集之一，是基于koch-v1.1六自由度机械臂采集的真机数据集，执行的任务为抓取桌子上的方块到盒子中。在lerobot代码仓根目录下新建koch_test文件夹，下载[koch_test数据集](https://huggingface.co/datasets/danaaubakirova/koch_test/tree/main)网站中所有的文件至koch_test文件夹中，并注意本地数据集目录树与网站上进行对应。文件较大，可以手动下载，也可以参考下面的指令进行下载：
   ```bash
-    cd lerobot  # 首先进入lerobot根目录下
-    git lfs install
-    git clone https://huggingface.co/datasets/danaaubakirova/koch_test
+  cd lerobot  # 进入lerobot根目录下
+  git lfs install --force
+  git clone https://huggingface.co/datasets/danaaubakirova/koch_test
   ```
 <br>
 
@@ -121,8 +121,8 @@ chmod +x run_pi0_inference.sh
       primaryClass={cs.RO},
       url={https://arxiv.org/abs/2410.24164}
 }
-
 ```
+
 <br>
 
 
