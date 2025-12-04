@@ -147,8 +147,8 @@ from torch_npu.contrib import transfer_to_npu
 
   ......
 
-  self.embed_and_paligemma_compile = torch.compile(
-      self.embed_and_paligemma,
+  self.compiled_embed_and_model_forward = torch.compile(
+      self.embed_and_model_forward,
       dynamic=False,
       fullgraph=True,
       backend=npu_backend
@@ -169,8 +169,8 @@ from torch_npu.contrib import transfer_to_npu
       x_t,
       time,
       past_key_values
-  ) = self.embed_and_paligemma_compile(
-      noise, images, img_masks, lang_tokens, lang_masks, device
+  ) = self.compiled_embed_and_model_forward(
+      noise, images, img_masks, lang_tokens, lang_masks
   )
 
   for step in range(self.config.num_steps):
