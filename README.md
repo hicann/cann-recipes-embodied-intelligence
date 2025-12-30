@@ -10,20 +10,18 @@ cann-recipes-embodied-intelligence仓库旨在针对具身智能业务中的典�
 ## ✨样例列表
 |实践|简介|
 |-----|-----|
-|[Pi0](models/pi0/README.md)|基于LeRobot库，在Atlas A2环境适配Pi0模型，通过使能融合算子、图模式、计算逻辑优化等手段，实现了较低的推理时延。
+|[Pi0](manipulation/pi0/infer_with_torch/README.md)|基于LeRobot库，在Atlas A2环境适配Pi0模型，通过使能融合算子、图模式、计算逻辑优化等手段，实现了较低的推理时延。
 
 
 ## 📖目录结构说明
 ```
 ├── docs                                        # 文档目录
-|  └── models                                   # 模型文档目录
+|  └── manipulation                             # 对应模型文档目录
 |     ├── pi0                                   # Pi0相关文档
 |     └── ...
-├── models                                      # 模型脚本目录
-|  ├── pi0                                      # Pi0的模型脚本及执行配置
-│  └── ...
-└── contrib                                     # 社区用户贡献的模型与文档目录
-|  ├── README.md
+├── manipulation                                # 操作类模型目录
+|  ├── pi0                                      # Pi0模型样例
+|  |    └── infer_with_torch                    # 基于裸torch的推理样例
 │  └── ...
 └── CONTRIBUTION.md
 └── DISCLAIMER.md

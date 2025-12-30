@@ -40,10 +40,9 @@ check_command() {
 info "开始执行 Pi0 代码仓、模型、数据集一键下载脚本"
 info "自动获取的父目录：${ROOT_DIR}"
 
-# 检查必要命令（git、cp、sudo 仍需检查）
+# 检查必要命令（git、cp仍需检查）
 check_command "git"
 check_command "cp"
-check_command "sudo"
 
 # 验证当前目录是否已包含目标文件夹
 if [ -d "${CANN_RECIPES_DIR}" ] && [ -d "${LEROBOT_DIR}" ]; then
@@ -88,13 +87,13 @@ if command -v git-lfs &> /dev/null; then
 else
     info "Git LFS 未安装，尝试直接安装..."
     # 先不更新 apt，直接安装 Git LFS
-    if sudo apt install git-lfs -y &> /dev/null; then
+    if apt install git-lfs -y &> /dev/null; then
         info "Git LFS 直接安装成功"
         git lfs install || error "Git LFS 初始化失败"
     else
         info "直接安装失败，尝试更新 apt 后重新安装..."
-        sudo apt update -y &> /dev/null || error "apt 更新失败（安装 Git LFS 必需）"
-        sudo apt install git-lfs -y &> /dev/null || error "Git LFS 安装失败"
+        apt update -y &> /dev/null || error "apt 更新失败（安装 Git LFS 必需）"
+        apt install git-lfs -y &> /dev/null || error "Git LFS 安装失败"
         git lfs install || error "Git LFS 初始化失败"
     fi
 fi

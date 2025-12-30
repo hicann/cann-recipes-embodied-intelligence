@@ -19,8 +19,8 @@ pi0是一个视觉-语言-动作（VLA）模型，专为通用机器人控制而
 # 进入需要放置代码仓的本地xxx目录下：
 cd xxx
 git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
-chmod +x cann-recipes-embodied-intelligence/models/pi0/download_code_and_data.sh
-./cann-recipes-embodied-intelligence/models/pi0/download_code_and_data.sh
+chmod +x cann-recipes-embodied-intelligence/manipulation/pi0/infer_with_torch/download_code_and_data.sh
+./cann-recipes-embodied-intelligence/manipulation/pi0/infer_with_torch/download_code_and_data.sh
 ```
 完成上述操作之后，最终lerobot根目录中相关代码目录树详见[附录：lerobot根目录相关代码目录树](#lerobot根目录相关代码目录树)。
 
@@ -64,7 +64,7 @@ chmod +x run_pi0_inference.sh
 ./run_pi0_inference.sh koch_test pi0_model 10 100
 ```
 
-基于上述运行过程，得到pi0的单次推理时间及结果如下所示（详细的优化过程介绍见 [pi0 优化说明文档](../../docs/models/pi0/README.md)）：
+基于上述运行过程，得到pi0的单次推理时间及结果如下所示（详细的优化过程介绍见 [pi0 优化说明文档](../../../docs/manipulation/pi0/infer_with_torch/README.md)）：
 - 推理性能：单次推理时间下降至80 ms，达到了预期的推理时间性能优化目标。
 - 推理结果：单次推理结果为50组机械臂关节角度序列，shape为[50,6]。
 <br>
