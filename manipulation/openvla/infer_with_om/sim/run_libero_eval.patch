@@ -1,0 +1,146 @@
+diff --git a/experiments/robot/libero/run_libero_eval.py b/experiments/robot/libero/run_libero_eval.py
+index 5c3f581..c768417 100644
+--- a/experiments/robot/libero/run_libero_eval.py
++++ b/experiments/robot/libero/run_libero_eval.py
+@@ -4,13 +4,21 @@ run_libero_eval.py
+ Runs a model in a LIBERO simulation environment.
+ 
+ Usage:
+-    # OpenVLA:
++    # OpenVLA OM:
+     # IMPORTANT: Set `center_crop=True` if model is fine-tuned with augmentations
+     python experiments/robot/libero/run_libero_eval.py \
+         --model_family openvla \
+         --pretrained_checkpoint <CHECKPOINT_PATH> \
+         --task_suite_name [ libero_spatial | libero_object | libero_goal | libero_10 | libero_90 ] \
+         --center_crop [ True | False ] \
++        --vision_backbone_om <PATH_TO_VISION_BACKBONE.OM> \
++        --projector_om <PATH_TO_PROJECTOR.OM> \
++        --embedding_om <PATH_TO_EMBEDDING.OM> \
++        --prefill_om <PATH_TO_PREFILL.OM> \
++        --decode_om <PATH_TO_DECODE.OM> \
++        --model_width 224 \
++        --model_height 224 \
++        --device_id 0 \
+         --run_id_note <OPTIONAL TAG TO INSERT INTO RUN ID FOR LOGGING> \
+         --use_wandb [ True | False ] \
+         --wandb_project <PROJECT> \
+@@ -19,6 +27,7 @@ Usage:
+ 
+ import os
+ import sys
++import gc
+ from dataclasses import dataclass
+ from pathlib import Path
+ from typing import Optional, Union
+@@ -40,9 +49,11 @@ from experiments.robot.libero.libero_utils import (
+     save_rollout_video,
+ )
+ from experiments.robot.openvla_utils import get_processor
++from experiments.robot.openvla_om_utils import create_openvla_om_model
+ from experiments.robot.robot_utils import (
+     DATE_TIME,
+     get_action,
++    get_action_om,
+     get_image_resize_size,
+     get_model,
+     invert_gripper_action,
+@@ -65,6 +76,18 @@ class GenerateConfig:
+ 
+     center_crop: bool = True                         # Center crop? (if trained w/ random crop image aug)
+ 
++    #################################################################################################################
++    # OM model paths (for OpenVLA OM inference)
++    #################################################################################################################
++    vision_backbone_om: str = ""                      # Path to vision_backbone.om
++    projector_om: str = ""                            # Path to projector.om
++    embedding_om: str = ""                            # Path to embedding.om
++    prefill_om: str = ""                              # Path to prefill.om
++    decode_om: str = ""                               # Path to decode.om
++    model_width: int = 224                            # Model input width
++    model_height: int = 224                            # Model input height
++    device_id: int = 0                                # Ascend device ID
++
+     #################################################################################################################
+     # LIBERO environment-specific parameters
+     #################################################################################################################
+@@ -102,14 +125,48 @@ def eval_libero(cfg: GenerateConfig) -> None:
+ 
+     # Load model
+     model = get_model(cfg)
++    print("Initializing OM model...")
++
++    configs = {
++        'action_dim': model.get_action_dim(cfg.unnorm_key),
++        'vocab_size': model.vocab_size,
++        'bin_centers': model.bin_centers,
++        'action_norm_stats': model.get_action_stats(cfg.unnorm_key),
++        'num_hidden_layers': model.language_model.config.num_hidden_layers,
++    }
++    print("Releasing PyTorch model from memory...")
++    del model
++    gc.collect()
++
++    # Initialize OM model
++    assert cfg.vision_backbone_om, "vision_backbone_om path must be provided!"
++    assert cfg.projector_om, "projector_om path must be provided!"
++    assert cfg.embedding_om, "embedding_om path must be provided!"
++    assert cfg.prefill_om, "prefill_om path must be provided!"
++    assert cfg.decode_om, "decode_om path must be provided!"
++
++    openvla, acl_resource = create_openvla_om_model(
++        vision_backbone_path=cfg.vision_backbone_om,
++        projector_path=cfg.projector_om,
++        embedding_path=cfg.embedding_om,
++        prefill_model_path=cfg.prefill_om,
++        decode_model_path=cfg.decode_om,
++        action_dim=configs["action_dim"],
++        vocab_size=configs["vocab_size"],
++        bin_centers=configs["bin_centers"],
++        action_norm_stats=configs["action_norm_stats"],
++        model_width=cfg.model_width,
++        model_height=cfg.model_height,
++        device_id=cfg.device_id,
++    )  
+ 
+     # [OpenVLA] Check that the model contains the action un-normalization key
+-    if cfg.model_family == "openvla":
+-        # In some cases, the key must be manually modified (e.g. after training on a modified version of the dataset
+-        # with the suffix "_no_noops" in the dataset name)
+-        if cfg.unnorm_key not in model.norm_stats and f"{cfg.unnorm_key}_no_noops" in model.norm_stats:
+-            cfg.unnorm_key = f"{cfg.unnorm_key}_no_noops"
+-        assert cfg.unnorm_key in model.norm_stats, f"Action un-norm key {cfg.unnorm_key} not found in VLA `norm_stats`!"
++    # if cfg.model_family == "openvla":
++    #     # In some cases, the key must be manually modified (e.g. after training on a modified version of the dataset
++    #     # with the suffix "_no_noops" in the dataset name)
++    #     if cfg.unnorm_key not in model.norm_stats and f"{cfg.unnorm_key}_no_noops" in model.norm_stats:
++    #         cfg.unnorm_key = f"{cfg.unnorm_key}_no_noops"
++    #     assert cfg.unnorm_key in model.norm_stats, f"Action un-norm key {cfg.unnorm_key} not found in VLA `norm_stats`!"
+ 
+     # [OpenVLA] Get Hugging Face processor
+     processor = None
+@@ -208,12 +265,21 @@ def eval_libero(cfg: GenerateConfig) -> None:
+                     }
+ 
+                     # Query model to get action
+-                    action = get_action(
++                    # action = get_action(
++                    #     cfg,
++                    #     model,
++                    #     observation,
++                    #     task_description,
++                    #     processor=processor,
++                    # )
++
++                    # for om model inference
++                    action = get_action_om(
+                         cfg,
+-                        model,
++                        openvla,
+                         observation,
+                         task_description,
+-                        processor=processor,
++                        processor,
+                     )
+ 
+                     # Normalize gripper action [0,1] -> [-1,+1] because the environment expects the latter

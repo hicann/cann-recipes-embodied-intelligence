@@ -1,0 +1,25 @@
+diff --git a/modeling_llama_ori.py b/modeling_llama.py
+index 2b8e8f6..af4091c 100644
+--- a/modeling_llama_ori.py
++++ b/modeling_llama.py
+@@ -85,7 +85,7 @@ class LlamaRMSNorm(nn.Module):
+     def forward(self, hidden_states):
+         input_dtype = hidden_states.dtype
+         hidden_states = hidden_states.to(torch.float32)
+-        variance = hidden_states.pow(2).mean(-1, keepdim=True)
++        variance = hidden_states.pow(2).sum(dim=-1, keepdim=True) / hidden_states.shape[-1]
+         hidden_states = hidden_states * torch.rsqrt(variance + self.variance_epsilon)
+         return self.weight * hidden_states.to(input_dtype)
+ 
+@@ -1092,7 +1092,10 @@ class LlamaModel(LlamaPreTrainedModel):
+ 
+         causal_mask = torch.full((sequence_length, target_length), fill_value=min_dtype, dtype=dtype, device=device)
+         if sequence_length != 1:
+-            causal_mask = torch.triu(causal_mask, diagonal=1)
++            row_idx = torch.arange(sequence_length, device=device).unsqueeze(1)
++            col_idx = torch.arange(target_length, device=device).unsqueeze(0)
++            mask = col_idx <= row_idx
++            causal_mask = causal_mask.masked_fill(mask, 0)
+         causal_mask *= torch.arange(target_length, device=device) > cache_position.reshape(-1, 1)
+         causal_mask = causal_mask[None, None, :, :].expand(input_tensor.shape[0], 1, -1, -1)
+         if attention_mask is not None:

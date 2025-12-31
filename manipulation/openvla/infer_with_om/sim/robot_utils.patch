@@ -1,0 +1,47 @@
+diff --git a/experiments/robot/robot_utils.py b/experiments/robot/robot_utils.py
+index 10e5289..45e5e6e 100644
+--- a/experiments/robot/robot_utils.py
++++ b/experiments/robot/robot_utils.py
+@@ -10,6 +10,7 @@ import torch
+ from experiments.robot.openvla_utils import (
+     get_vla,
+     get_vla_action,
++    get_vla_action_om,
+ )
+ 
+ # Initialize important constants and pretty-printing mode in NumPy.
+@@ -71,6 +72,34 @@ def get_action(cfg, model, obs, task_label, processor=None):
+         raise ValueError("Unexpected `model_family` found in config.")
+     return action
+ 
++def get_action_om(cfg, model, obs, task_label, processor=None):
++    """
++    Queries the OM model to get an action.
++
++    Args:
++        cfg: Configuration object
++        model: OpenVLA OM model instance
++        obs: Observation dictionary from simulation environment
++        task_label: Task description string
++        processor: Hugging Face Processor (optional)
++
++    Returns:
++        Action array of shape (ACTION_DIM,)
++    """
++    if cfg.model_family == "openvla":
++        action = get_vla_action_om(
++            model,
++            processor,
++            cfg.pretrained_checkpoint,
++            obs,
++            task_label,
++            center_crop=cfg.center_crop,
++        )
++        assert action.shape == (ACTION_DIM,)
++    else:
++        raise ValueError("Unexpected `model_family` found in config.")
++    return action
++
+ 
+ def normalize_gripper_action(action, binarize=True):
+     """
