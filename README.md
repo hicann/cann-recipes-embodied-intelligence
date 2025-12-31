@@ -1,6 +1,10 @@
 # cann-recipes-embodied-intelligence
 
 ## 🚀Latest News
+- [2025/12] Pi0模型在昇腾Ascend 310P上已支持推理，样例已开源。
+- [2025/12] OpenVLA模型在昇腾Ascend 310P上已支持推理，样例已开源。
+- [2025/12] DiffusionPolicy模型在昇腾Ascend 310P上已支持推理，样例已开源。
+- [2025/12] Action Chunking with Transformers (ACT) 模型在昇腾Ascend 310P上已支持推理，样例已开源。
 - [2025/11] Pi0模型在昇腾Atlas A2系列上已支持推理，代码已开源。
 
 ## 🎉概述
@@ -8,26 +12,37 @@ cann-recipes-embodied-intelligence仓库旨在针对具身智能业务中的典�
 
 
 ## ✨样例列表
-|实践|简介|
-|-----|-----|
-|[Pi0](manipulation/pi0/infer_with_torch/README.md)|基于LeRobot库，在Atlas A2环境适配Pi0模型，通过使能融合算子、图模式、计算逻辑优化等手段，实现了较低的推理时延。
+| 实践                                                                       | 平台          | 框架    | 简介                                                               |
+|--------------------------------------------------------------------------|-------------|-------|------------------------------------------------------------------|
+| [Pi0](manipulation/pi0/infer_with_torch/README.md)                       | Atlas A2    | torch | 基于LeRobot库，在Atlas A2环境适配Pi0模型，通过使能融合算子、图模式、计算逻辑优化等手段，实现了较低的推理时延。 | 
+| [Pi0](manipulation/pi0/infer_with_om/README.md)                          | Ascend 310P | /     | 基于LeRobot库，在310P环境OM离线推理的Pi0模型，实现了较低的推理时延。                       |
+| [ACT](manipulation/act/infer_with_om/README.md)                          | Ascend 310P | /     | 在310P环境OM离线推理的ACT模型，实现了较低的推理时延。                                  |
+| [DiffusionPolicy](manipulation/diffusion_policy/infer_with_om/README.md) | Ascend 310P | /     | 在310P环境OM离线推理的DiffusionPolicy模型，实现了较低的推理时延。                      |
+| [OpenVLA](manipulation/openvla/infer_with_om/README.md)         | Ascend 310P | /     | 在310P环境OM离线推理的OpenVLA模型，实现了较低的推理时延。                              |
+
 
 
 ## 📖目录结构说明
 ```
-├── docs                                        # 文档目录
-|  └── manipulation                             # 对应模型文档目录
-|     ├── pi0                                   # Pi0相关文档
-|     └── ...
-├── manipulation                                # 操作类模型目录
-|  ├── pi0                                      # Pi0模型样例
-|  |    └── infer_with_torch                    # 基于裸torch的推理样例
-│  └── ...
-└── CONTRIBUTION.md
-└── DISCLAIMER.md
-└── LICENSE
-└── README.md
-└── ...
+├─CONTRIBUTION.md
+├─DISCLAIMER.md
+├─LICENSE
+├─README.md
+├─Third_Party_Open_Source_Software_Notice
+├─docs                                          # 文档目录
+│  └─manipulation                               # 对应模型文档目录
+│      └─pi0                                    # Pi0相关文档
+│          └─infer_with_torch
+└─manipulation                                  # 操作类模型目录
+    ├─act                                       # Action Chunking with Transformers模型样例
+    │  └─infer_with_om                          # ACT模型om离线推理样例
+    ├─diffusion_policy                          # DiffusionPolicy模型样例
+    │  └─infer_with_om                          # DiffusionPolicy模型om离线推理样例
+    ├─openvla                                   # OpenVLA模型样例
+    │  └─infer_with_om
+    └─pi0                                       # Pi0模型样例
+        ├─infer_with_om
+        └─infer_with_torch                      # Pi0模型torch推理样例
 ```
 
 ## 📝相关信息
