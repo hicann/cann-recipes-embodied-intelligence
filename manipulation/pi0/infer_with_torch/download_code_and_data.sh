@@ -71,11 +71,11 @@ success "lerobot 代码仓拉取并回退版本成功！"
 # ===================== 步骤2：复制 cann-recipes-embodied-intelligence 中pi0相关文件到 lerobot =====================
 progress "开始复制 cann-recipes-embodied-intelligence 文件夹中的 pi0 相关文件到 lerobot..."
 
-cp -f "${CANN_RECIPES_DIR}/models/pi0/modeling_pi0.py" "${LEROBOT_DIR}/lerobot/common/policies/pi0/" || error "复制 modeling_pi0.py 失败"
-cp -f "${CANN_RECIPES_DIR}/models/pi0/paligemma_with_expert.py" "${LEROBOT_DIR}/lerobot/common/policies/pi0/" || error "复制 paligemma_with_expert.py 失败"
-cp -f "${CANN_RECIPES_DIR}/models/pi0/pyproject.toml" "${LEROBOT_DIR}/" || error "复制 pyproject.toml 失败"
-cp -f "${CANN_RECIPES_DIR}/models/pi0/run_pi0_inference.sh" "${LEROBOT_DIR}/" || error "复制 run_pi0_inference.sh 失败"
-cp -f "${CANN_RECIPES_DIR}/models/pi0/test_pi0_on_ascend.py" "${LEROBOT_DIR}/" || error "复制 test_pi0_on_ascend.py 失败"
+cp -f "${CANN_RECIPES_DIR}/manipulation/pi0/infer_with_torch/modeling_pi0.py" "${LEROBOT_DIR}/lerobot/common/policies/pi0/" || error "复制 modeling_pi0.py 失败"
+cp -f "${CANN_RECIPES_DIR}/manipulation/pi0/infer_with_torch/paligemma_with_expert.py" "${LEROBOT_DIR}/lerobot/common/policies/pi0/" || error "复制 paligemma_with_expert.py 失败"
+cp -f "${CANN_RECIPES_DIR}/manipulation/pi0/infer_with_torch/pyproject.toml" "${LEROBOT_DIR}/" || error "复制 pyproject.toml 失败"
+cp -f "${CANN_RECIPES_DIR}/manipulation/pi0/infer_with_torch/run_pi0_inference.sh" "${LEROBOT_DIR}/" || error "复制 run_pi0_inference.sh 失败"
+cp -f "${CANN_RECIPES_DIR}/manipulation/pi0/infer_with_torch/test_pi0_on_ascend.py" "${LEROBOT_DIR}/" || error "复制 test_pi0_on_ascend.py 失败"
 success "cann-recipes 文件复制成功！"
 
 # ===================== 步骤3：下载 koch_test 数据集 =====================
