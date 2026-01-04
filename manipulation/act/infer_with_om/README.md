@@ -175,12 +175,6 @@ atc --model=outputs/onnx/act.onnx \
         --soc_version=Ascend310P1
 ```
 
-也可以参考并修改脚本 [act/convert_om.sh](act/convert_om.sh) 里的路径后执行：
-
-```bash
-bash act/convert_om.sh
-```
-
 当模型转换完成后，当前目录应当存在一个名为 `act.om` 的模型（或者 `--output` 参数指定目录下）,在终端中有输出“ATC run success, welcome to the next use”。
 
 #### 3) 使用 OM-backend sim-evaluator 进行仿真评测

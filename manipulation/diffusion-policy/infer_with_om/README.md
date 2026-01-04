@@ -156,7 +156,14 @@ python3 convert_and_verify_onnx.py \
 
 样例输出如下：
 ```
-
+INFO: ONNX export finished
+INFO: Validating ONNX output vs PyTorch (CPU ORT)...
+INFO: ONNX inference time (CPU): 0.033126 sec
+INFO: PyTorch output shape: (1, 16, 2)
+INFO: ONNX output shape: (1, 16, 2)
+INFO: Max abs diff: 1.22935e-07
+INFO: Mean abs diff: 3.55503e-08
+INFO: Cosine similarity (min/max/mean): 1.000000 / 1.000000 / 1.000000
 ```
 
 #### 2) ATC 将 ONNX 转为 OM
@@ -173,12 +180,6 @@ atc --model=outputs/onnx/dp.onnx \
 soc_version 需要根据 'npu-smi info' 得到的Name Device中芯片型号填写soc_version，比如以下为"310P1"，那么soc_version则填写Ascend310P1。
 
 ![npu-smi info](https://raw.gitcode.com/user-images/assets/7380116/91e63da3-7c42-4b70-b7d5-47fa358beeed/npu.jpg)
-
-也可以参考并修改脚本 [dp/convert_om.sh](dp/convert_om.sh) 里的路径后执行：
-
-```bash
-bash convert_om.sh
-```
 
 当模型转换完成后，当前目录应当存在一个名为 `dp.om` 的模型（或者 `--output` 参数指定目录下）,在终端中有输出“ATC run success, welcome to the next use”。
 
