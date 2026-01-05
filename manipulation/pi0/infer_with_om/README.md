@@ -84,7 +84,7 @@ source xxxx/ascend-toolkit/setenv.bash
 
 ```bash
 # 1) 拉取 lerobot 仓库并切到指定 **commit**
-cd contrib
+cd manipulation
 git clone https://github.com/huggingface/lerobot.git  # **如果contrib下没有lerobot目录**
 cd lerobot
 git checkout b0923ab74b7fb7ed688ef2abbe79607f3dee390a
@@ -108,27 +108,21 @@ cd ../pi0
 
 # 6) 库文件替换
 
-cd /path/to/conda/envs/pi0/lib/python3.10/site-packages/transformers/models/gemma
-git apply --check -p1 /path/to/pi0/modeling_gemma.patch
+cd /path/to/conda/envs/pi0/lib/python3.10/site-packages/transformers/models/gemma # 可以通过pip show transformers  查看transformers安装路径
+git apply --check -p1 /path/to/pi0/modeling_gemma.patch # 没有报错则表示可以应用补丁
 git apply -p1 /path/to/pi0/modeling_gemma.patch
 
 # 7) 模型分部文件添加
 cp contrib/pi0_on_310p
 cp lerobot_modify/modeling_pi0_vlm.py /path/to/lerobot/src/lerobot/policies/pi0/modeling_pi0_vlm.py
-```
-
-##### 仿真渲染（MuJoCo）无头模式
-
-如果服务器/容器缺少显示环境或 OpenGL 渲染后端，MuJoCo 可能无法正常渲染。
-可以在运行仿真/评测前指定 EGL 无头渲染：
-
-```bash
-export MUJOCO_GL=egl
+cp lerobot_modify/modeling_pi0_action_expert.py /path/to/lerobot/src/lerobot/policies/pi0/modeling_pi0_action_expert.py
+cp lerobot_modify/paligemma_with_expert_fp16.py /path/to/lerobot/src/lerobot/policies/pi0/paligemma_with_expert_fp16.py
+cp lerobot_modify/normalize.py /path/to/lerobot/src/lerobot/policies/normalize.py
 ```
 
 #### Pi0在昇腾310P上的推理步骤
 
-Pi0分为VLM的PaliGemma和动作专家的Gemma两个模块，在推理流上是解耦的。且Gemma这个模块由于是扩散执行十轮，如果直接编译成离线图会占据大量内存和时间，因此我们单独编译了part1的Paligemma和part2的Gemma,分别转化为两个OM文件，在推理时分两步加载执行。
+Pi0分为VLM的PaliGemma和动作专家的Gemma两个模块，在推理流上是解耦的。且Gemma这个模块由于是扩散执行十轮，如果直接编译成离线图会占据大量内存和时间，因此我们单独编译了part1的Paligemma和part2的Gemma,分别转化为两个OM文件，在推理时分两步加载执行。Part2依赖于Part1运行时保存的中间张量，并且需多次调用(Pi0模型中动作专家需执行10次)。
 
 Pi0架构图：![Pi0 arch](https://raw.gitcode.com/user-images/assets/7380116/cda2b3e3-dd28-4eba-96bb-3c3f3f660bf1/image.png)
 
@@ -144,7 +138,7 @@ Pi0架构图：![Pi0 arch](https://raw.gitcode.com/user-images/assets/7380116/cd
 
 需要在转化onnx的机器上额外安装onnx runtime依赖:
 ```bash
-pip install onnx
+pip install onnx pytest onnxscript
 # 基于Host CPU转换onnx请安装(310P 宿主机执行):
 pip install onnxruntime
 # 基于Host GPU转换onnx请安装：
@@ -160,7 +154,7 @@ pip install onnxruntime-gpu
 # 也可以先用 huggingface-cli 下载到 pi0_model/:
 #   pip install -U huggingface_hub
 #   huggingface-cli download BrunoM42/pi0_aloha_transfer_cube --local-dir pi0_model
-
+mkdir runtime_save # 用于保存中间运行时张量
 ./run_pi0_export.sh --pretrained-policy-path ./pi0_model # 替换为你的模型目录路径
 ```
 
@@ -177,27 +171,21 @@ pip install onnxruntime-gpu
 # 推荐直接用 atc（路径按你的实际文件位置修改）
 atc --model=outputs/onnx/pi0-vlm.onnx \
         --framework=5 \
-        --output=outputs/om/pi0 \
+        --output=outputs/om/pi0_vlm \
         --soc_version=Ascend310P1 \
         --precision_mode_v2=origin
 
 atc --model=outputs/onnx/pi0-action_expert.onnx \
         --framework=5 \
-        --output=outputs/om/pi0 \
+        --output=outputs/om/pi0_action_expert \
         --soc_version=Ascend310P1 \
         --precision_mode_v2=origin
 ```
 soc_version 需要根据 'npu-smi info' 得到的Name Device中芯片型号填写soc_version，比如以下为"310P1"，那么soc_version则填写Ascend310P1。
 
-![npu-smi info](figure/npu.jpg) # change url
+<img src="https://raw.gitcode.com/user-images/assets/7380116/c583e4bd-fddf-4d44-bc65-7ad69d84ab02/om_compile_workflow.png" style="zoom:50%;" />
 
-也可以参考并修改脚本 [pi0/convert_om.sh](pi0/convert_om.sh) 里的路径后执行：
-
-```bash
-bash convert_om.sh
-```
-
-当模型转换完成后，当前目录应当存在一个名为 `pi0.om` 的模型（或者 `--output` 参数指定目录下）,在终端中有输出“ATC run success, welcome to the next use”。
+当模型转换完成后，当前目录应当存在名为 `pi0_vlm.om` 和 `pi0_action_expert.om`(或者`pi0_action_expert_linux_x86.om`) 的模型（或者 `--output` 参数指定目录下）,在终端中有输出“ATC run success, welcome to the next use”。
 
 ##### 基于mock的数据输入，CPU/GPU与原始Pytorch输出相似度对比
 
@@ -218,6 +206,33 @@ python3 verify_om_onnx_action_expert.py \
     --seed 42
 ```
 该脚本会根据 config.json 生成确定性的 dummy 输入（支持多摄像头输入），并对比 ONNXRuntime(CPU) vs OM(NPU)
+
+##### 端到端 Pi0 模型推理
+
+Pi0 模型推理需要分两步调用，先调用 part1 的 VLM 模块，保存中间张量后再多次调用 part2 （10次）的动作专家模块，最后将动作输出反归一化映射到原来的动作空间。
+
+```bash
+cd ../pi0/infer_with_om
+
+python ./run_om_e2e.py \
+    --vlm-model-path ./outputs/om/pi0_vlm.om \
+    --action-expert-model-path ./outputs/om/pi0_action_expert_linux_x86_64.om
+
+# 反归一化的参数默认值为示例模型的参数若需要自定义模型的反归一化参数，可以运行pytorch推理过程获得 mean.pt 和 std.pt 文件
+
+cd ../../lerobot
+
+python ./src/lerobot/scripts/eval.py  --policy.path=/mnt/disk1/shared_data/pi0_aloha_model/   --env.type=aloha  --env.task=AlohaTransferCube-v0  --env.episode_length=10
+
+cd ../pi0/infer_with_om
+
+# 获取到 mean.pt 和 std.pt 文件后，运行端到端OM推理：
+python ./run_om_e2e.py \
+    --mean-path ../../lerobot/mean.pt \
+    --std-path ../../lerobot/std.pt \
+    --vlm-model-path ./outputs/om/pi0_vlm.om \
+    --action-expert-model-path ./outputs/om/pi0_action_expert_linux_x86_64.om
+```
 
 仿真示例效果：
 ![pi0 sim-demo](https://raw.gitcode.com/user-images/assets/7380116/666ba75f-5bb0-45d3-9c2b-564912cad9d7/pi0.gif)

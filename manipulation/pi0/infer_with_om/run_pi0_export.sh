@@ -53,16 +53,15 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo "[vlm] exporting to $PART1_OUT (runtime_save_dir=$RUNTIME_SAVE)"
-python -u pi0/convert_verify_vlm.py \
+python -u convert_verify_onnx_vlm.py \
   --pretrained-policy-path "$PRETRAINED" \
   --output "$PART1_OUT" \
   --runtime-save-dir "$RUNTIME_SAVE" \
   --device "$DEVICE" \
-  --no-validate \
   $EXTRA_PART1
 
 echo "[action_expert] exporting to $PART2_OUT (loading runtime tensors from $RUNTIME_SAVE)"
-python -u pi0/convert_verify_action_expert.py \
+python -u convert_verify_onnx_action_expert.py \
   --pretrained-policy-path "$PRETRAINED" \
   --output "$PART2_OUT" \
   --past-kv-path "$RUNTIME_SAVE/past_kv_tensor.pth" \
