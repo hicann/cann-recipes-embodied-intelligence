@@ -70,7 +70,7 @@ DP 是一种典型的基于 Diffusion 的模仿学习控制策略，该模型将
 
 .om模型转化及运行需要安装CANN软件包。
 
-本样例的编译执行依赖CANN开发套件包（cann-toolkit）与CANN二进制算子包（cann-kernels），支持的CANN软件版本为`CANN 8.0.0-8.2.RC1`。 请从[软件包下载地址](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.2.RC1)下载对应架构软件包，例如` Ascend-cann-toolkit_8.2.RC1_linux-x86_64.run`与` Ascend-cann-kernels-310b_8.2.RC1_linux-x86_64.run`软件包，并参考[CANN安装文档](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/83RC1alpha002/softwareinst/instg/instg_0001.html?Mode=PmIns&OS=Debian&Software=cannToolKit)依次进行安装。
+本样例的编译执行依赖CANN开发套件包（cann-toolkit）与CANN二进制算子包（cann-kernels），支持的CANN软件版本为`CANN 8.0.0-8.2.RC1`。 请从[软件包下载地址](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.2.RC1)下载对应架构软件包，例如` Ascend-cann-toolkit_8.2.RC1_linux-x86_64.run`与` Ascend-cann-kernels-310p_8.2.RC1_linux-x86_64.run`软件包，并参考[CANN安装文档](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/83RC1alpha002/softwareinst/instg/instg_0001.html?Mode=PmIns&OS=Debian&Software=cannToolKit)依次进行安装。
 
 ```
 # xxxx为CANN包的实际安装目录，注意每次新建终端时，激活一下setenv.bash
@@ -81,7 +81,7 @@ source xxxx/ascend-toolkit/setenv.bash
 
 ```bash
 # 1) 拉取 lerobot 仓库并切到指定 commit
-cd contrib
+cd manipulation
 git clone https://github.com/huggingface/lerobot.git  # 如果contrib下没有lerobot目录
 cd lerobot
 git checkout d9e74a9d374a8f26582ad326c699740a227b483c
@@ -97,10 +97,13 @@ pip install -e .
 # 推荐用 extra 一次性安装：
 pip install -e ".[aloha]"
 
-# 5) 固定 numpy 版本（如你的环境需要）
+# 5) 固定 numpy 版本（如你的环境需要）,补齐相关依赖缺失
 pip install numpy==1.26.0
+pip install decorator
+pip install gym_pusht
+pip install "pymunk<7.0.0" # pumunk 版本过高不兼容
 
-cd ../dp
+cd ../diffusion-policy/infer_with_om
 ```
 
 ##### 仿真渲染（MuJoCo）无头模式
@@ -183,7 +186,25 @@ soc_version 需要根据 'npu-smi info' 得到的Name Device中芯片型号填�
 
 当模型转换完成后，当前目录应当存在一个名为 `dp.om` 的模型（或者 `--output` 参数指定目录下）,在终端中有输出“ATC run success, welcome to the next use”。
 
-#### 3) 使用 OM-backend sim-evaluator 进行仿真评测
+#### 3)DP在昇腾上的精度验证步骤
+
+接下来介绍验证转换后的.om模型在NPU上运行验证方法。
+
+##### 基于mock的数据输入，CPU/GPU与原始Pytorch输出相似度对比
+
+构造输入数据测试Pytorch CPU/GPU和OM 310P NPU的输出余弦相似度对比：
+
+```bash
+# 在 310P 上执行（需要 ACL/AclLite Python 依赖）
+python3 verify_om_onnx.py \
+    --onnx-model-path outputs/onnx/dp.onnx \s
+    --om-model-path outputs/om/dp.om \
+    --seed 42 \
+    --n-action-steps 16
+```
+该脚本会根据 config.json 生成确定性的 dummy 输入（支持多摄像头输入），并对比 ONNXRuntime(CPU) vs OM(NPU)
+
+#### 4) 使用 OM-backend sim-evaluator 进行于PushT任务仿真评测
 
 在 310P 上执行（需要 ACL/ACLLite Python 依赖可用）。
 可参考：[ACLLite安装教程](https://gitee.com/ascend/ACLLite#%E5%AE%89%E8%A3%85%E6%95%99%E7%A8%8B)
@@ -203,46 +224,13 @@ python3 eval_dp_ascend.py \
 - 评测结果会写入 `outputs/eval/.../eval_info.json`
 - 日志会打印 `Aggregated eval metrics`（包含 success_rate 等聚合指标）
 
-#### DP在昇腾上的精度验证步骤
-
-接下来介绍两种验证转换后的.om模型在NPU上运行验证方法。
-
-##### 基于mock的数据输入，CPU/GPU与原始Pytorch输出相似度对比
-
-构造输入数据测试Pytorch CPU/GPU和OM 310P NPU的输出余弦相似度对比：
-
-```bash
-# 在 310P 上执行（需要 ACL/AclLite Python 依赖）
-python3 verify_om_onnx.py \
-    --pretrained-policy-path dp_model \
-    --onnx-model-path outputs/onnx/dp.onnx \
-    --om-model-path outputs/om/dp.om \
-    --seed 42
-```
-该脚本会根据 config.json 生成确定性的 dummy 输入（支持多摄像头输入），并对比 ONNXRuntime(CPU) vs OM(NPU)
-
-##### 基于PushT仿真任务的功能测试示例
-
-在Host CPU上进行仿真渲染:
-
-```bash
-python3 eval_dp_ascend.py \
-    --policy.path=dp_model \
-    --om_model_path=outputs/om/dp.om \
-    --env.type=pusht \
-    --eval.batch_size=1 \
-    --eval.n_episodes=1 \
-    --env.episode_length=600 \
-    --seed=4412
-```
-
 示例效果：
 ![dp sim-demo](https://raw.gitcode.com/user-images/assets/7380116/ea76a846-f8fb-41a8-980b-d28b1614c9d7/dp.gif)
 
 
 ##### 可能遇到的问题
 
-关于 policy_preprocessor / policy_postprocessor 的归一化参数丢失。DP 在训练时通常对 observation / action 做了归一化（normalization）。为了让 **OM 输出的 DPion** 能正确落回环境动作空间，并且 **OM 输入的 observation** 与训练时一致，评测需要两份处理器产物：
+关于 policy_preprocessor / policy_postprocessor 的归一化参数丢失。DP 在训练时通常对 observation / action 做了归一化（normalization）。为了让 **OM 输出的 action** 能正确落回环境动作空间，并且 **OM 输入的 observation** 与训练时一致，评测需要两份处理器产物：
 
 - `policy_preprocessor.json` + 对应的 `*.safetensors`：负责推理前对 observation 做与训练一致的预处理/归一化
 - `policy_postprocessor.json` + 对应的 `*.safetensors`：负责把模型输出 action 做反归一化（unnormalize），再送入环境 step
@@ -270,7 +258,7 @@ dp_model_migrated/
 ```
 
 说明：
-- [dp/eval_dp_ascend.py](dp/eval_dp_ascend.py) 会优先在 `--policy.path` 指向的目录查找 processors；如果没有，会自动尝试同级的 `<policy_dir>_migrated/`。
+- [diffusion-policy/infer_with_om/eval_dp_ascend.py](diffusion-policy/infer_with_om/eval_dp_ascend.py) 会优先在 `--policy.path` 指向的目录查找 processors；如果没有，会自动尝试同级的 `<policy_dir>_migrated/`。
 - 也可以直接把 `--policy.path` 指向 `dp_model_migrated/`（前提是该目录包含 `config.json`）。
 
 
@@ -300,8 +288,8 @@ dp_model_migrated/
 
 ````text
 |-- lerobot/                            # Pytorch原始仓库
-├── dp/
-|   ├── readme.md                       # 本文件
+├── diffusion-policy/infer_with_om      
+|   ├── README.md                       # 本文件
 |   ├── eval_dp_ascend.py               # Ascend OM-backend sim-evaluator
 |   ├── convert_and_verify_onnx.py      # PyTorch -> ONNX 转化脚本
 |   ├── verify_om_onnx.py               # ONNXRuntime(CPU) vs OM(NPU) 误差对比
@@ -310,6 +298,7 @@ dp_model_migrated/
 |   ├── policy_input_schema.py          # 自动获取并读取模型文件config.json
 |   └── figure/                         # README所用示意图
 |   ├── dp_model                        # Huggingface或其他来源下载的模型
+|   ├── dp_model_migrated               # 脚本转化生成的带归一化参数文件夹（若dp_model自带参数可不用）
 |   └── outputs/                        # 转换产生文件
         ├── onnx/
         ├── om/

@@ -415,10 +415,23 @@ def _resolve_om_model_path(om_model_path: Path | None, *, policy_dir: Path) -> P
         raise ValueError("Missing --om_model_path (Path to OM model)")
 
     p = Path(om_model_path).expanduser()
-    resolved = (policy_dir / p).resolve() if not p.is_absolute() else p.resolve()
-    if not resolved.exists():
-        raise FileNotFoundError(f"OM model path does not exist: {resolved}")
-    return resolved
+
+    # 逻辑修改：优先检查当前路径（无论是绝对路径还是相对路径）
+    # 如果当前路径下存在该文件，直接使用，不再强拼 policy_dir
+    if p.exists():
+        return p.resolve()
+
+    # 如果当前路径找不到，再尝试去 policy_dir 下面找（兼容旧逻辑）
+    resolved_in_policy = (policy_dir / p).resolve()
+    if resolved_in_policy.exists():
+        return resolved_in_policy
+
+    # 都找不到才报错
+    raise FileNotFoundError(
+        f"OM model path not found.\n"
+        f"Checked location 1 (CWD): {p.resolve()}\n"
+        f"Checked location 2 (Policy Dir): {resolved_in_policy}"
+    )
 
 
 def _find_policy_postprocessor_dir(policy_dir: Path) -> Path | None:
@@ -724,9 +737,9 @@ def eval_policy(env: gym.vector.VectorEnv, policy: PreTrainedPolicy, cfg: EvalPo
 
     def render_frame(env: gym.vector.VectorEnv):
         nonlocal n_episodes_rendered
-        if n_episodes_rendered >= max_episodes_rendered:
+        if n_episodes_rendered >= cfg.max_episodes_rendered:
             return
-        n_to_render_now = min(max_episodes_rendered - n_episodes_rendered, env.num_envs)
+        n_to_render_now = min(cfg.max_episodes_rendered - n_episodes_rendered, env.num_envs)
         if isinstance(env, gym.vector.SyncVectorEnv):
             ep_frames.append(np.stack([env.envs[i].render() for i in range(n_to_render_now)]))
         elif isinstance(env, gym.vector.AsyncVectorEnv):
@@ -829,13 +842,19 @@ def eval_policy(env: gym.vector.VectorEnv, policy: PreTrainedPolicy, cfg: EvalPo
                 "seed": seed,
             }
         )
-    if max_episodes_rendered > 0:
+    if cfg.max_episodes_rendered > 0:
         info["video_paths"] = video_paths
     return info
 
 
+@dataclass
+class EvalPipelineConfigWithOM(EvalPipelineConfig):
+    # 在这里显式定义参数，这样命令行才能识别 --om_model_path
+    om_model_path: str | None = None
+
+
 @parser.wrap()
-def eval_main(cfg: EvalPipelineConfig):
+def eval_main(cfg: EvalPipelineConfigWithOM):
     logging.info(pformat(asdict(cfg)))
 
     device = get_safe_torch_device(cfg.policy.device if cfg.policy is not None else "cpu", log=True)
