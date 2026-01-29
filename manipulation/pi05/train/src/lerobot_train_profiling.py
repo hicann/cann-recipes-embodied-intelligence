@@ -398,7 +398,7 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             torch_npu.profiler.ProfilerActivity.CPU,
             torch_npu.profiler.ProfilerActivity.NPU,
         ],
-        schedule=torch_npu.profiler.schedule(wait=5, warmup=5, active=5),
+        schedule=torch_npu.profiler.schedule(wait=12, warmup=5, active=3),
         on_trace_ready=torch_npu.profiler.tensorboard_trace_handler("./profiling/"),
         record_shapes=True,
         profile_memory=True,

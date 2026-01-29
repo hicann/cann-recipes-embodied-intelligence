@@ -88,7 +88,7 @@ mkdir -p "${LEROBOT_DIR}/src/lerobot/utils/"
 cp -f "${CANN_RECIPES_DIR}/manipulation/pi05/train/src/modeling_pi05.py" "${LEROBOT_DIR}/src/lerobot/policies/pi05/" || error "复制 modeling_pi05.py 失败"
 cp -f "${CANN_RECIPES_DIR}/manipulation/pi05/train/src/lerobot_train.py" "${LEROBOT_DIR}/src/lerobot/scripts/" || error "复制 lerobot_train.py 失败"
 cp -f "${CANN_RECIPES_DIR}/manipulation/pi05/train/src/lerobot_eval.py" "${LEROBOT_DIR}/src/lerobot/scripts/" || error "复制 lerobot_eval.py 失败"
-cp -f "${CANN_RECIPES_DIR}/manipulation/pi05/train/src/run_train_profiling.py" "${LEROBOT_DIR}/src/lerobot/scripts/" || error "复制 run_train_profiling.py 失败"
+cp -f "${CANN_RECIPES_DIR}/manipulation/pi05/train/src/lerobot_train_profiling.py" "${LEROBOT_DIR}/src/lerobot/scripts/" || error "复制 run_train_profiling.py 失败"
 cp -f "${CANN_RECIPES_DIR}/manipulation/pi05/train/src/utils.py" "${LEROBOT_DIR}/src/lerobot/utils/" || error "复制 utils.py 失败"
 cp -f "${CANN_RECIPES_DIR}/manipulation/pi05/train/src/configs/"*.yaml "${LEROBOT_DIR}/src/lerobot/configs/" || error "复制配置文件失败"
 success "Pi05 相关文件复制完成"
@@ -126,7 +126,20 @@ git lfs install --local || error "Git LFS 初始化失败"
 
 # ===================== 步骤 5：安装 Pi 与 Libero 可选依赖 =====================
 progress "安装 Pi05 相关可选依赖（pi）..."
-pip install -e ".[pi]" || error "Pi05 依赖安装失败"
+# 检查 cmake 是否存在
+ 	  if ! command -v cmake &> /dev/null; then
+ 	      error "cmake 未安装，请先安装 cmake"
+ 	  fi
+ 	  CMAKE_VERSION= $ (cmake --version | head -n1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+ 	  MAJOR_VERSION= $ (echo " $ CMAKE_VERSION" | cut -d. -f1)
+ 	 
+ 	  # 检查主版本是否 >= 4
+ 	  if [ " $ MAJOR_VERSION" -ge 4 ]; then
+ 	      error "检测到 CMake 版本  $ CMAKE_VERSION，但 egl_probe 不兼容 CMake 4+。请使用 CMake 3.x。"
+ 	  fi
+ 	  progress "CMake 版本  $ CMAKE_VERSION 兼容，继续安装..."
+ 	 
+ 	  pip install -e ".[pi]" || error "Pi05 依赖安装失败"
 
 progress "安装 Libero 仿真环境依赖（libero）..."
 pip install -e ".[libero]" || error "Libero 依赖安装失败"
@@ -139,6 +152,8 @@ if [[ "$(uname -m)" == "aarch64" ]]; then
     if python -c "import torchcodec" &>/dev/null; then
         info "torchcodec 已安装，跳过编译"
     else
+        info "正在安装 pybind11"
+        pip install pybind11
         info "正在克隆 torchcodec 仓库..."
         git clone https://github.com/meta-pytorch/torchcodec.git || error "torchcodec 仓库克隆失败"
         cd torchcodec

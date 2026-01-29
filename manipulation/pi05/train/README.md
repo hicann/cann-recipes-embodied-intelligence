@@ -73,7 +73,7 @@ chmod +x cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts/
 ```
 完成上述操作之后对应的项目文件结构请参考附录部分[正确安装后项目文件结构](#正确安装后项目文件结构)。
 
-## 分布式训练启动脚本使用说明 {#train}
+## 分布式训练启动脚本使用说明
 <figure>
   <img src="https://raw.gitcode.com/zengzixuan/pic/raw/main/train_pi05_log.png" alt="train log">
   <figcaption style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 14px; color: #555; text-align: center; margin-top: 8px;">
@@ -139,6 +139,7 @@ chmod +x run_train.sh
 **tips：**
 - 输出目录：若未启用 --resume 且原 output_dir 已存在，脚本会自动在路径后追加时间戳（如 outputs/pi0_20251225_143022），避免覆盖。
 - 日志文件：训练日志将保存在 ckpt/logs/ 目录下，格式为 train_<model>_<timestamp>.log。
+- 训练监控：本项目使用wandb进行训练过程监控，使用前请先在终端输入`wandb login`进行登陆并配置正确的API key，并在config文件（即configs/<model_type>.yaml）中正确设置`project`和`entity`参数。若不需要训练监控，则将config文件（即configs/<model_type>.yaml）中`wandb`项目的`enable`设置为`false`。
 - 后台运行：脚本默认使用 nohup ... & 在后台启动训练，可通过日志文件或 jobs/ps 查看进程。
 
 ## 评估脚本使用说明
@@ -222,7 +223,7 @@ chmod +x run_eval.sh
 ```
 
 ## π₀.₅ 模型模仿学习分布式训练调优实践
-见 [性能优化与最佳实践](doc/profiling.md)
+见 [性能优化与最佳实践](doc/README.md)
 
 ## 附录
 ### 正确安装后项目文件结构

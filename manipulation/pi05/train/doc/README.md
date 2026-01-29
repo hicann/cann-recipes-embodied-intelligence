@@ -47,7 +47,7 @@ from torch_npu.contrib import transfer_to_npu
 ## 模型训练性能分析与优化
 
 ### profiling 说明
-使用 `torch_npu.profiler` 及 MindStudio Insight 平台对训练时的性能数据进行采集，再进行可视化查看流水图、算子耗时统计图等。采集训练性能数据的方法可参考[分布式训练说明](../README.md#train)，只需要把执行的 `run_train.sh` 换成 `run_profiling.sh`。具体性能数据采集设置如下：
+使用 `torch_npu.profiler` 及 MindStudio Insight 平台对训练时的性能数据进行采集，再进行可视化查看流水图、算子耗时统计图等。采集训练性能数据的方法可参考[分布式训练说明](../README.md#分布式训练启动脚本使用说明)，只需要把执行的 `run_train.sh` 换成 `run_profiling.sh`。具体性能数据采集设置如下：
 
 ```python
 experimental_config = torch_npu.profiler._ExperimentalConfig(

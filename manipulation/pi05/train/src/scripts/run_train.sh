@@ -30,7 +30,7 @@ export HOST_CACHE_CAPACITY=20
 # 获取项目根目录
 # -------------------------
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PROJECT_ROOT="$( cd "$SCRIPT_DIR/../../../../.." && pwd )/lerobot"
+PROJECT_ROOT="$( cd "$SCRIPT_DIR/../../../../../../" && pwd )/lerobot"
 echo "Project root: $PROJECT_ROOT"
 
 # -------------------------
@@ -169,7 +169,9 @@ fi
 # -------------------------
 # 构建 accelerate 参数
 # -------------------------
-ACCELERATE_ARGS=(--multi_gpu --num_processes="$NPROC")
+if (( NPROC != 1 )); then
+        ACCELERATE_ARGS=(--multi_gpu --num_processes=" $ NPROC")
+    fi
 
 if [[ "$USE_MIXED_PRECISION" == true ]]; then
     echo "Using mixed precision: $MIXED_PRECISION_TYPE"
