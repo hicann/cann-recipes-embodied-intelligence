@@ -1,0 +1,59 @@
+diff -ruN physical_ai_av-0.1.0/PKG-INFO physical_ai_av-0.1.0-2/PKG-INFO
+--- physical_ai_av-0.1.0/PKG-INFO	1970-01-01 08:00:00.000000000 +0800
++++ physical_ai_av-0.1.0-2/PKG-INFO	2026-02-11 17:11:28.177509300 +0800
+@@ -11,7 +11,7 @@
+ Requires-Dist: pyarrow>=20.0.0
+ Requires-Dist: scipy>=1.16.0
+ Requires-Dist: tqdm>=4.65.0
+-Requires-Python: >=3.12
++Requires-Python: >=3.11
+ Description-Content-Type: text/markdown
+ 
+ # physical_ai_av
+diff -ruN physical_ai_av-0.1.0/pyproject.toml physical_ai_av-0.1.0-2/pyproject.toml
+--- physical_ai_av-0.1.0/pyproject.toml	1970-01-01 08:00:00.000000000 +0800
++++ physical_ai_av-0.1.0-2/pyproject.toml	2026-02-11 17:11:28.186507200 +0800
+@@ -6,7 +6,7 @@
+ authors = [
+     { name = "NVIDIA", email = "eschmerling@nvidia.com" }
+ ]
+-requires-python = ">=3.12"
++requires-python = ">=3.11"
+ dependencies = [
+     "av>=14.4.0",
+     "huggingface-hub>=0.36.0",
+diff -ruN physical_ai_av-0.1.0/src/physical_ai_av/egomotion.py physical_ai_av-0.1.0-2/src/physical_ai_av/egomotion.py
+--- physical_ai_av-0.1.0/src/physical_ai_av/egomotion.py	1970-01-01 08:00:00.000000000 +0800
++++ physical_ai_av-0.1.0-2/src/physical_ai_av/egomotion.py	2026-02-11 17:11:28.196506000 +0800
+@@ -31,7 +31,7 @@
+     def from_egomotion_df(cls, egomotion_df: pd.DataFrame) -> Self:
+         return cls(
+             pose=spt.RigidTransform.from_components(
+-                rotation=spt.Rotation.from_quat(egomotion_df[["qx", "qy", "qz", "qw"]].to_numpy()),
++                rotation=spt.Rotation.from_quat(egomotion_df[["qx", "qy", "qz", "qw"]].to_numpy().copy()),
+                 translation=egomotion_df[["x", "y", "z"]].to_numpy(),
+             ),
+             velocity=egomotion_df[["vx", "vy", "vz"]].to_numpy(),
+diff -ruN physical_ai_av-0.1.0/src/physical_ai_av/utils/interpolation.py physical_ai_av-0.1.0-2/src/physical_ai_av/utils/interpolation.py
+--- physical_ai_av-0.1.0/src/physical_ai_av/utils/interpolation.py	1970-01-01 08:00:00.000000000 +0800
++++ physical_ai_av-0.1.0-2/src/physical_ai_av/utils/interpolation.py	2026-02-11 17:12:29.178999900 +0800
+@@ -3,6 +3,7 @@
+ import dataclasses
+ import enum
+ from typing import Callable, ClassVar
++from typing import Generic, TypeVar
+ 
+ import numpy as np
+ import numpy.typing as npt
+@@ -91,9 +92,9 @@
+         return RigidTransformInterpolator(timestamps, values, interpolation_method)
+     raise ValueError(f"Unknown {interpolation_method=}.")
+ 
+-
++T = TypeVar("T", bound="Interpolatable")
+ @dataclasses.dataclass
+-class Interpolator[T: Interpolatable]:
++class Interpolator(Generic[T]):
+     """Interpolator for dataclasses with interpolation method specified by field metadata."""
+ 
+     timestamps: npt.NDArray[np.int64]
