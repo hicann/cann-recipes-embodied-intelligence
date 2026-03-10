@@ -104,7 +104,7 @@ if [ -n "$CUSTOM_CONFIG" ]; then
     CONFIG_PATH="$PROJECT_ROOT/$CUSTOM_CONFIG"
     echo "Using custom config: $CONFIG_PATH"
 elif [ -n "$MODEL_TYPE" ]; then
-    CONFIG_PATH="$PROJECT_ROOT/configs/${MODEL_TYPE}.yaml"
+    CONFIG_PATH="$PROJECT_ROOT/src/lerobot/configs/${MODEL_TYPE}.yaml"
     if [ ! -f "$CONFIG_PATH" ]; then
         echo "Error: Config file not found for model '$MODEL_TYPE': $CONFIG_PATH"
         exit 1
@@ -170,7 +170,7 @@ fi
 # 构建 accelerate 参数
 # -------------------------
 if (( NPROC != 1 )); then
-        ACCELERATE_ARGS=(--multi_gpu --num_processes=" $ NPROC")
+        ACCELERATE_ARGS=(--multi_gpu --num_processes=" $NPROC")
     fi
 
 if [[ "$USE_MIXED_PRECISION" == true ]]; then
