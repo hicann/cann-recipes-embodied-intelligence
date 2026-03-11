@@ -191,9 +191,9 @@ cp /path/to/openvla_om_utils.py ./experiments/robot/
 ```
 准备好代码环境后，可以运行以下命令进行仿真评测
 ```bash
-python3 -m experiments.robot.libero.run_libero_eval \       
-    --model_family openvla \ 
-    --pretrained_checkpoint models/openvla-7b-finetuned-libero-object/ \ 
+python3 -m experiments.robot.libero.run_libero_eval \
+    --model_family openvla \
+    --pretrained_checkpoint models/openvla-7b-finetuned-libero-object/ \
     --task_suite_name libero_object \
     --center_crop True \
     --vision_backbone_om outputs/om/vision/vision_backbone.om \
@@ -220,11 +220,11 @@ python3 -m experiments.robot.libero.run_libero_eval \
 python3 verify_om_onnx.py \
    --model-path models/openvla-7b-finetuned-libero-object \
    --unnorm-key libero_object \
-   --vision-backbone-om outputs/om/vision/vision_backbone.om \  
-   --projector-om outputs/om/vision/projector.om \ 
-   --embedding-om om_models/vision/embedding.om \  
-   --prefill-om om_models/llama_prefill/vla_prefill.om \   
-   --decode-om om_models/llama_decode/vla_decoder.om
+   --vision-backbone-om outputs/om/vision/vision_backbone.om \
+   --projector-om outputs/om/vision/projector.om \
+   --embedding-om outputs/omvision/embedding.om \
+   --prefill-om outputs/om/llama_prefill/vla_prefill.om \
+   --decode-om outputs/om/llama_decode/vla_decoder.om
 ```
 
 ### 2）基于仿真模拟器的功能测试（MuJoCo / LIBERO）
@@ -232,16 +232,16 @@ python3 verify_om_onnx.py \
 使用`libero`仿真环境数据在 NPU 进行推理，在 Host CPU 上进行仿真渲染（或控制循环）：
 
 ```bash
-python3 -m experiments.robot.libero.run_libero_eval \       
-    --model_family openvla \ 
-    --pretrained_checkpoint models/openvla-7b-finetuned-libero-object/ \ 
+python3 -m experiments.robot.libero.run_libero_eval \
+    --model_family openvla \
+    --pretrained_checkpoint models/openvla-7b-finetuned-libero-object/ \
     --task_suite_name libero_object \
     --center_crop True \
-    --vision_backbone_om om_models/vision/vision_backbone.om \
-    --projector_om om_models/vision/projector.om \
-    --embedding_om om_models/vision/embedding.om \
-    --prefill_om om_models/llama_prefill/vla_prefill.om \
-    --decode_om om_models/llama_decode/vla_decoder.om
+    --vision_backbone_om outputs/om/vision/vision_backbone.om \
+    --projector_om outputs/om/vision/projector.om \
+    --embedding_om outputs/om/vision/embedding.om \
+    --prefill_om outputs/om/llama_prefill/vla_prefill.om \
+    --decode_om outputs/om/llama_decode/vla_decoder.om
 ```
 
 示例效果: \

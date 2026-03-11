@@ -28,6 +28,7 @@ import acllite_utils as utils
 import constants as const
 from acllite_imageproc import AclLiteImageProc
 from acllite_model import AclLiteModel
+from acllite_kv_model import KVStatefulModel
 from acllite_resource import resource_list
 
 # Import common utilities
@@ -102,7 +103,7 @@ class AclLiteResource:
             logging.info("acl resource release context")
             acl.rt.destroy_context(self.context)
 
-        logging.info("Reset acl device ", self.device_id)
+        logging.info("Reset acl device %s", self.device_id)
         acl.rt.reset_device(self.device_id)
         logging.info("Release acl resource success")
 
@@ -182,8 +183,8 @@ class OpenVLA:
         Initialize DVPP and load OM models.
         """
         self._dvpp = AclLiteImageProc()
-        self.prefill_model = AclLiteModel(self.prefill_model_path)
-        self.decode_model = AclLiteModel(self.decode_model_path)
+        self.prefill_model = KVStatefulModel(self.prefill_model_path)
+        self.decode_model = KVStatefulModel(self.decode_model_path)
         return const.SUCCESS
 
     @utils.display_time
@@ -325,10 +326,9 @@ class OpenVLA:
             multimodal_position_ids,
             multimodal_embeddings,
         ]
-        prefill_outputs = self.prefill_model.execute(prefill_input_list)
-
-        logits = prefill_outputs[0]
-        past_key_values = prefill_outputs[1:]
+        prefill_outputs_ptr = self.prefill_model.execute(prefill_input_list, output_to_host=False)
+        logits = self.prefill_model.copy_output_to_host(0, prefill_outputs_ptr[0])
+        past_kv_ptr = prefill_outputs_ptr[1]
 
         # Get the last valid token position and extract logits
         last_valid_token_indices = np.sum(multimodal_attention_mask, axis=1) - 1
@@ -356,38 +356,17 @@ class OpenVLA:
                 [[original_effective_seq_len + i]], dtype=np.int64
             )
 
-            decoder_inputs = (
-                [decoder_input_ids, dummy_attention_mask, new_pos_id]
-                + list(past_key_values)
-            )
-            decoder_outputs = self.decode_model.execute(decoder_inputs)
-
-            logits = decoder_outputs[0]
-            past_key_values = decoder_outputs[1:]
-
-            # Post-process past_key_values: update kv cache and truncate
-            def replace_kv_index(past_key_values_local, index, seq_len):
-                """Replace kv cache at index with value from position seq_len."""
-                out = []
-                for arr in past_key_values_local:
-                    if arr.shape[2] > seq_len:
-                        arr = arr.copy()  # Avoid in-place side effects
-                        arr[:, :, index, :] = arr[:, :, seq_len, :]
-                    out.append(arr)
-                return tuple(out)
-
-            # Replace kv cache at original_effective_seq_len + i with value from position target_seq_len
-            past_key_values = replace_kv_index(
-                past_key_values,
-                index=original_effective_seq_len + i,
-                seq_len=target_seq_len,
-            )
-
-            # Truncate past_key_values to length target_seq_len
-            past_key_values = [
-                x[:, :, :target_seq_len, :] if x.shape[2] >= target_seq_len else x
-                for x in past_key_values
+            cache_index = np.array([[original_effective_seq_len + i]], dtype=np.int64)
+            decoder_inputs = [
+                decoder_input_ids,
+                dummy_attention_mask,
+                new_pos_id,
+                past_kv_ptr,
+                cache_index,
             ]
+            decoder_outputs_ptr = self.decode_model.execute(decoder_inputs, output_to_host=False)
+            logits = self.decode_model.copy_output_to_host(0, decoder_outputs_ptr[0])
+            past_kv_ptr = decoder_outputs_ptr[1]
 
             # Extract next token: use logits[:, 0, :] (single token output)
             next_token_id = np.argmax(logits[:, 0, :], axis=-1)[:, np.newaxis]
@@ -481,6 +460,11 @@ def _parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(levelname)s] %(message)s",
+        force=True,
+    )
     args = _parse_args()
 
     local_model_path = args.model_path
