@@ -79,7 +79,7 @@ from dataclasses import asdict
 from pathlib import Path
 from pprint import pformat
 from termcolor import colored
-from torch import Tensor, nnrvs()
+from torch import Tensor, nn
 from tqdm import trange
 from scipy import stats
 from acllite_imageproc import AclLiteImageProc
