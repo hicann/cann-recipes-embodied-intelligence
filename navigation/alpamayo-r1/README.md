@@ -11,10 +11,10 @@ AR-1是英伟达提出的面向L4/L5级智能驾驶的视觉-语言-动作（VLA
 
 1. 安装CANN软件包。
 
-   本样例的编译执行依赖CANN开发套件包（cann-toolkit）与CANN二进制算子包（cann-kernels），支持的CANN软件版本为`CANN 8.3.RC1.alpha001`。
+   本样例的编译执行依赖CANN开发套件包（cann-toolkit）与CANN二进制算子包（cann-kernels），支持的CANN软件版本为`CANN 8.5.0`。
 
-   请从[软件包下载地址](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.3.RC1.alpha001)下载`Ascend-cann-toolkit_${version}_linux-${arch}.run`与`Atlas-A2-cann-kernels_${version}_linux-${arch}.run`软件包，并参考[CANN安装文档](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/83RC1alpha001/softwareinst/instg/instg_0001.html?Mode=PmIns&OS=Debian&Software=cannToolKit)进行安装。
-      - `${version}`表示CANN包版本号，如8.3.RC1.alpha001。
+   请从[软件包下载地址](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.5.0)下载`Ascend-cann-toolkit_${version}_linux-${arch}.run`与`Atlas-A2-cann-kernels_${version}_linux-${arch}.run`软件包，并参考[CANN安装文档](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/850/softwareinst/instg/instg_0000.html?Mode=PmIns&InstallType=netconda&OS=Debian)进行安装。
+      - `${version}`表示CANN包版本号，如8.5.0。
       - `${arch}`表示CPU架构，如aarch64、x86_64。
 
 2. 安装 uv (如果没有uv)
@@ -34,11 +34,11 @@ AR-1是英伟达提出的面向L4/L5级智能驾驶的视觉-语言-动作（VLA
     cd ..
 
     # 应用适配昇腾A2的patch
-    patch -p0 < cann-recipes-embodied-intelligence/manipulation/alpamayo-r1/patches/ar-1.patch
+    patch -p0 < cann-recipes-embodied-intelligence/navigation/alpamayo-r1/patches/ar-1.patch
 
     # 将原仓库alpamayo的代码复制到本项目目录下
-    cp -rn alpamayo/* cann-recipes-embodied-intelligence/manipulation/alpamayo-r1/
-    cd cann-recipes-embodied-intelligence/manipulation/alpamayo-r1
+    cp -rn alpamayo/* cann-recipes-embodied-intelligence/navigation/alpamayo-r1/
+    cd cann-recipes-embodied-intelligence/navigation/alpamayo-r1
     ```
 4. 创建虚拟环境
     ```bash
@@ -75,6 +75,9 @@ AR-1是英伟达提出的面向L4/L5级智能驾驶的视觉-语言-动作（VLA
     cd ./src/alpamayo_r1
     python test_inference.py
 ```
+基于上述运行过程，可以得到Alpamayo-R1的单次推理结果（详细的优化过程介绍见 [Alpamayo-R1 优化说明文档](../../docs/navigation/alpamayo-r1/README.md)）。
+- 推理性能：单次推理时间下降至7.32s，达到了预期的推理时间性能优化目标。
+- 推理结果：单次推理结果为10组驾驶轨迹预测序列和CoC思维链文本。
 
 ## AR-1在昇腾A2上的精度验证步骤
 ### 基于minADE指标来验证昇腾的推理精度

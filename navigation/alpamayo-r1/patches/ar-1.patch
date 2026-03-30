@@ -1,0 +1,429 @@
+diff -ruN alpamayo/pyproject.toml alpamayo/pyproject.toml
+--- alpamayo/pyproject.toml	2026-03-23 11:30:41.383632800 +0800
++++ alpamayo/pyproject.toml	2026-03-18 16:35:43.845695100 +0800
+@@ -1,36 +1,58 @@
+-[project]
+-name = "alpamayo_r1"
+-version = "0.1.0"
+-requires-python = "==3.12.*"
+-dependencies = [
+-  "accelerate>=1.12.0",
+-  "av>=16.0.1",
+-  "einops>=0.8.1",
+-  "hydra-colorlog>=1.2.0",
+-  "hydra-core>=1.3.2",
+-  "pandas>=2.3.3",
+-  "physical_ai_av>=0.1.0",
+-  "pillow>=12.0.0",
+-  "torch==2.8.0",
+-  "torchvision>=0.23.0",
+-  "transformers==4.57.1",
+-  "flash-attn>=2.8.3",
+-]
+-
+-[build-system]
+-requires = ["uv_build>=0.9.7,<0.10.0"]
+-build-backend = "uv_build"
+-
+-[dependency-groups]
+-dev = [
+-  "matplotlib>=3.10.7",
+-  "mediapy>=1.2.4",
+-  "ipykernel>=6.29.3",
+-  "ipywidgets>=8.1.8",
+-]
+-
+-[tool.uv]
+-no-build-isolation-package = ["flash-attn"]
+-
+-[tool.ruff]
+-line-length = 100
++[project]
++name = "alpamayo_r1"
++version = "0.1.0"
++requires-python = ">=3.11.13"
++dependencies = [
++  "accelerate>=1.12.0",
++  "av>=16.0.1",
++  "einops>=0.8.1",
++  "hydra-colorlog>=1.2.0",
++  "hydra-core>=1.3.2",
++  "pandas>=2.3.3",
++  "pillow>=12.0.0",
++  "torch==2.8.0",
++  "torch-npu==2.8.0",
++  "torchvision==0.23.0",
++  "transformers==4.57.1",
++  "setuptools==80.10.2",
++  "numpy==2.4.2",
++  "decorator==5.2.1",
++  "sympy==1.14.0",
++  "psutil==7.2.2",
++  "scipy==1.17.0",
++  "requests==2.32.5",
++]
++
++[project.optional-dependencies]
++cuda = [
++    "flash-attn>=2.8.3",
++]
++
++[build-system]
++requires = ["uv_build>=0.9.7,<0.10.0"]
++build-backend = "uv_build"
++
++[dependency-groups]
++dev = [
++  "matplotlib>=3.10.7",
++  "mediapy>=1.2.4",
++  "ipykernel>=6.29.3",
++  "ipywidgets>=8.1.8",
++]
++
++[tool.uv.sources]
++torch       = { index = "pytorch-cpu" }
++torchvision = { index = "pytorch-cpu" }
++torchaudio  = { index = "pytorch-cpu" }
++
++
++[[tool.uv.index]]
++name = "pytorch-cpu"
++url = "https://download.pytorch.org/whl/cpu"
++explicit = true # Ensures uv only uses this specific index for the configured packages
++
++[tool.uv]
++no-build-isolation-package = ["flash-attn"]
++
++[tool.ruff]
++line-length = 100
+\ No newline at end of file
+diff -ruN alpamayo/src/alpamayo_r1/diffusion/flow_matching.py alpamayo/src/alpamayo_r1/diffusion/flow_matching.py
+--- alpamayo/src/alpamayo_r1/diffusion/flow_matching.py	2026-03-23 11:30:41.418637700 +0800
++++ alpamayo/src/alpamayo_r1/diffusion/flow_matching.py	2026-03-18 16:52:49.083985900 +0800
+@@ -119,7 +119,7 @@
+             dt = dt.view(1, *[1] * n_dim).expand(batch_size, *[1] * n_dim)
+             t_start = time_steps[i].view(1, *[1] * n_dim).expand(batch_size, *[1] * n_dim)
+             v = step_fn(x=x, t=t_start)
+-            x = x + dt * v
++            x = torch.addcmul(x, dt, v)
+             if return_all_steps:
+                 all_steps.append(x)
+         if return_all_steps:
+diff -ruN alpamayo/src/alpamayo_r1/load_physical_aiavdataset.py alpamayo/src/alpamayo_r1/load_physical_aiavdataset.py
+--- alpamayo/src/alpamayo_r1/load_physical_aiavdataset.py	2026-03-23 11:30:41.428639400 +0800
++++ alpamayo/src/alpamayo_r1/load_physical_aiavdataset.py	2026-03-20 09:20:18.370483900 +0800
+@@ -68,7 +68,7 @@
+             - clip_id: The clip ID
+     """
+     if avdi is None:
+-        avdi = physical_ai_av.PhysicalAIAVDatasetInterface()
++        avdi = physical_ai_av.PhysicalAIAVDatasetInterface(revision='25.10')
+ 
+     if camera_features is None:
+         camera_features = [
+diff -ruN alpamayo/src/alpamayo_r1/models/action_in_proj.py alpamayo/src/alpamayo_r1/models/action_in_proj.py
+--- alpamayo/src/alpamayo_r1/models/action_in_proj.py	2026-03-23 11:30:41.433634500 +0800
++++ alpamayo/src/alpamayo_r1/models/action_in_proj.py	2026-03-23 11:31:57.209659200 +0800
+@@ -16,6 +16,7 @@
+ import math
+ 
+ import torch
++import torch_npu
+ from torch import nn
+ 
+ 
+@@ -25,15 +26,18 @@
+         self.eps = eps
+         self.weight = nn.Parameter(torch.ones(dim))
+ 
+-    def _norm(self, x):
+-        """Normalize the input tensor."""
+-        return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
+-
+     def forward(self, x):
+-        """Normalize the input tensor."""
+-        output = self._norm(x.float()).type_as(x)
+-        return output * self.weight
++        input_dtype = x.dtype
++        weight_dtype = self.weight.dtype
+ 
++        if input_dtype != weight_dtype:
++            weight = self.weight.to(input_dtype)
++        else:
++            weight = self.weight
++        
++        # npu_rms_norm resturns
++        output = torch_npu.npu_rms_norm(x, weight, self.eps)[0]
++        return output
+ 
+ class MLPEncoder(nn.Module):
+     """Basic MLP encoder."""
+@@ -144,6 +148,7 @@
+             outdim=out_dim,
+         )
+         self.norm = nn.LayerNorm(out_dim)
++        self.num_input_feats = num_input_feats
+ 
+     def forward(self, x: torch.Tensor, timesteps: torch.Tensor) -> torch.Tensor:
+         """Forward pass of the per-waypoint action projection V2.
+@@ -159,8 +164,13 @@
+         """
+         B, T, _ = x.shape
+ 
+-        action_feats = torch.cat([s(x[:, :, i]) for i, s in enumerate(self.sinus)], dim=-1)
++        batch_feats = torch.empty(B, T, self.num_input_feats, device=x.device, dtype=x.dtype)
++        offset = 0
++        for i, s in enumerate(self.sinus):
++            feat = s(x[:, :, i])
++            batch_feats[:, :, offset:offset+feat.size(-1)] = feat
++            offset += feat.size(-1)
+         timestep_feats = self.timestep_fourier_encoder(timesteps[..., -1])
+-        timestep_feats = timestep_feats.repeat(1, T, 1)
+-        x = torch.cat((action_feats, timestep_feats), dim=-1)
++        batch_feats[:, :, offset:] = timestep_feats.repeat(1, T, 1)
++        x = batch_feats
+         return self.norm(self.encoder(x.flatten(0, 1)).reshape(B, T, -1))
+diff -ruN alpamayo/src/alpamayo_r1/models/alpamayo_r1.py alpamayo/src/alpamayo_r1/models/alpamayo_r1.py
+--- alpamayo/src/alpamayo_r1/models/alpamayo_r1.py	2026-03-23 11:30:41.435636600 +0800
++++ alpamayo/src/alpamayo_r1/models/alpamayo_r1.py	2026-03-18 17:10:39.600481600 +0800
+@@ -270,7 +270,6 @@
+                 inputs_embeds=future_token_embeds,
+                 position_ids=position_ids,
+                 past_key_values=prompt_cache,
+-                attention_mask=attention_mask,
+                 use_cache=True,
+                 **forward_kwargs,
+             )
+diff -ruN alpamayo/src/alpamayo_r1/models/base_model.py alpamayo/src/alpamayo_r1/models/base_model.py
+--- alpamayo/src/alpamayo_r1/models/base_model.py	2026-03-23 11:30:41.439635300 +0800
++++ alpamayo/src/alpamayo_r1/models/base_model.py	2026-03-18 17:12:04.554644600 +0800
+@@ -304,6 +304,7 @@
+                 _recursive_setattr(module, "_is_hf_initialized", True)
+         else:
+             pretrained_modules = {}
++        config.attn_implementation = 'flash_attention_2'
+ 
+         # Initialize VLM backbone
+         self._initialize_vlm_backbone(config, pretrained_modules, original_vocab_size)
+diff -ruN alpamayo/src/alpamayo_r1/qwen_patches/__init__.py alpamayo/src/alpamayo_r1/qwen_patches/__init__.py
+--- alpamayo/src/alpamayo_r1/qwen_patches/__init__.py	1970-01-01 08:00:00.000000000 +0800
++++ alpamayo/src/alpamayo_r1/qwen_patches/__init__.py	2026-03-20 14:52:20.051384100 +0800
+@@ -0,0 +1 @@
++from .qwen3vl_optimization import apply_qwen3vl_patches
+\ No newline at end of file
+diff -ruN alpamayo/src/alpamayo_r1/qwen_patches/qwen3vl_optimization.py alpamayo/src/alpamayo_r1/qwen_patches/qwen3vl_optimization.py
+--- alpamayo/src/alpamayo_r1/qwen_patches/qwen3vl_optimization.py	1970-01-01 08:00:00.000000000 +0800
++++ alpamayo/src/alpamayo_r1/qwen_patches/qwen3vl_optimization.py	2026-03-20 14:52:03.608164500 +0800
+@@ -0,0 +1,48 @@
++from typing import Optional
++import torch
++
++def patched_get_placeholder_mask(
++    self,
++    input_ids: torch.LongTensor,
++    inputs_embeds: torch.FloatTensor,
++    image_features: Optional[torch.FloatTensor] = None,
++    video_features: Optional[torch.FloatTensor] = None,
++):
++    if input_ids is None:
++        special_image_mask = inputs_embeds == self.get_input_embeddings()(
++            torch.tensor(self.config.image_token_id, dtype=torch.long, device=inputs_embeds.device)
++        )
++        special_image_mask = special_image_mask.all(-1)
++        special_video_mask = inputs_embeds == self.get_input_embeddings()(
++            torch.tensor(self.config.video_token_id, dtype=torch.long, device=inputs_embeds.device)
++        )
++        special_video_mask = special_video_mask.all(-1)
++    else:
++        special_image_mask = input_ids == self.config.image_token_id
++        special_video_mask = input_ids == self.config.video_token_id
++
++    n_image_tokens = special_image_mask.sum()
++    special_image_mask = special_image_mask.unsqueeze(-1).expand_as(inputs_embeds).to(inputs_embeds.device)
++
++    if image_features is not None:
++        n_masked_elements = special_image_mask.sum().item()
++        if n_masked_elements != image_features.numel():
++            raise ValueError(
++                f"Image features and image tokens do not match: tokens: {n_image_tokens}, features {image_features.shape[0]}"
++            )
++
++    n_video_tokens = special_video_mask.sum()
++    special_video_mask = special_video_mask.unsqueeze(-1).expand_as(inputs_embeds).to(inputs_embeds.device)
++
++    if video_features is not None:
++        n_masked_elements = special_video_mask.sum().item()
++        if n_masked_elements != video_features.numel():
++            raise ValueError(
++                f"Videos features and video tokens do not match: tokens: {n_video_tokens}, features {video_features.shape[0]}"
++            )
++
++    return special_image_mask, special_video_mask
++
++def apply_qwen3vl_patches():
++    from transformers.models.qwen3_vl import modeling_qwen3_vl
++    modeling_qwen3_vl.Qwen3VLModel.get_placeholder_mask = patched_get_placeholder_mask
+\ No newline at end of file
+diff -ruN alpamayo/src/alpamayo_r1/test_inference.py alpamayo/src/alpamayo_r1/test_inference.py
+--- alpamayo/src/alpamayo_r1/test_inference.py	2026-03-23 11:30:41.447637000 +0800
++++ alpamayo/src/alpamayo_r1/test_inference.py	2026-03-20 14:28:16.148495700 +0800
+@@ -1,77 +1,82 @@
+-# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+-# SPDX-License-Identifier: Apache-2.0
+-#
+-# Licensed under the Apache License, Version 2.0 (the "License");
+-# you may not use this file except in compliance with the License.
+-# You may obtain a copy of the License at
+-#
+-# http://www.apache.org/licenses/LICENSE-2.0
+-#
+-# Unless required by applicable law or agreed to in writing, software
+-# distributed under the License is distributed on an "AS IS" BASIS,
+-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-# See the License for the specific language governing permissions and
+-# limitations under the License.
+-
+-# End-to-end example script for the inference pipeline:
+-# This script loads a dataset, runs inference, and computes the minADE.
+-# It can be used to test the inference pipeline.
+-
+-import torch
+-import numpy as np
+-
+-from alpamayo_r1.models.alpamayo_r1 import AlpamayoR1
+-from alpamayo_r1.load_physical_aiavdataset import load_physical_aiavdataset
+-from alpamayo_r1 import helper
+-
+-
+-# Example clip ID
+-clip_id = "030c760c-ae38-49aa-9ad8-f5650a545d26"
+-print(f"Loading dataset for clip_id: {clip_id}...")
+-data = load_physical_aiavdataset(clip_id, t0_us=5_100_000)
+-print("Dataset loaded.")
+-messages = helper.create_message(data["image_frames"].flatten(0, 1))
+-
+-model = AlpamayoR1.from_pretrained("nvidia/Alpamayo-R1-10B", dtype=torch.bfloat16).to("cuda")
+-processor = helper.get_processor(model.tokenizer)
+-
+-inputs = processor.apply_chat_template(
+-    messages,
+-    tokenize=True,
+-    add_generation_prompt=False,
+-    continue_final_message=True,
+-    return_dict=True,
+-    return_tensors="pt",
+-)
+-model_inputs = {
+-    "tokenized_data": inputs,
+-    "ego_history_xyz": data["ego_history_xyz"],
+-    "ego_history_rot": data["ego_history_rot"],
+-}
+-
+-model_inputs = helper.to_device(model_inputs, "cuda")
+-
+-torch.cuda.manual_seed_all(42)
+-with torch.autocast("cuda", dtype=torch.bfloat16):
+-    pred_xyz, pred_rot, extra = model.sample_trajectories_from_data_with_vlm_rollout(
+-        data=model_inputs,
+-        top_p=0.98,
+-        temperature=0.6,
+-        num_traj_samples=1,  # Feel free to raise this for more output trajectories and CoC traces.
+-        max_generation_length=256,
+-        return_extra=True,
+-    )
+-
+-# the size is [batch_size, num_traj_sets, num_traj_samples]
+-print("Chain-of-Causation (per trajectory):\n", extra["cot"][0])
+-
+-gt_xy = data["ego_future_xyz"].cpu()[0, 0, :, :2].T.numpy()
+-pred_xy = pred_xyz.cpu().numpy()[0, 0, :, :, :2].transpose(0, 2, 1)
+-diff = np.linalg.norm(pred_xy - gt_xy[None, ...], axis=1).mean(-1)
+-min_ade = diff.min()
+-print("minADE:", min_ade, "meters")
+-print(
+-    "Note: VLA-reasoning models produce nondeterministic outputs due to trajectory sampling, "
+-    "hardware differences, etc. With num_traj_samples=1 (set for GPU memory compatibility), "
+-    "variance in minADE is expected. For visual sanity checks, see notebooks/inference.ipynb"
+-)
++# SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++# SPDX-License-Identifier: Apache-2.0
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++# http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++# End-to-end example script for the inference pipeline:
++# This script loads a dataset, runs inference, and computes the minADE.
++# It can be used to test the inference pipeline.
++from alpamayo_r1.qwen_patches import apply_qwen3vl_patches
++apply_qwen3vl_patches()
++
++import torch
++import torch_npu
++from torch_npu.contrib import transfer_to_npu
++import numpy as np
++
++from alpamayo_r1.models.alpamayo_r1 import AlpamayoR1
++from alpamayo_r1.load_physical_aiavdataset import load_physical_aiavdataset
++from alpamayo_r1 import helper
++
++# Example clip ID
++clip_id = "030c760c-ae38-49aa-9ad8-f5650a545d26"
++print(f"Loading dataset for clip_id: {clip_id}...")
++data = load_physical_aiavdataset(clip_id, t0_us=5_100_000)
++print("Dataset loaded.")
++messages = helper.create_message(data["image_frames"].flatten(0, 1))
++
++# use local checkpoints
++local_model_path = "Path of the checkpoint of AR-1 downloaded"
++model = AlpamayoR1.from_pretrained(local_model_path, dtype=torch.bfloat16).to("cuda")
++processor = helper.get_processor(model.tokenizer)
++
++inputs = processor.apply_chat_template(
++    messages,
++    tokenize=True,
++    add_generation_prompt=False,
++    continue_final_message=True,
++    return_dict=True,
++    return_tensors="pt",
++)
++model_inputs = {
++    "tokenized_data": inputs,
++    "ego_history_xyz": data["ego_history_xyz"],
++    "ego_history_rot": data["ego_history_rot"],
++}
++
++model_inputs = helper.to_device(model_inputs, "cuda")
++
++torch.cuda.manual_seed_all(42)
++with torch.autocast("cuda", dtype=torch.bfloat16):
++    pred_xyz, pred_rot, extra = model.sample_trajectories_from_data_with_vlm_rollout(
++        data=model_inputs,
++        top_p=0.98,
++        temperature=0.6,
++        num_traj_samples=10,  # Feel free to raise this for more output trajectories and CoC traces.
++        max_generation_length=256,
++        return_extra=True,
++    )
++
++# the size is [batch_size, num_traj_sets, num_traj_samples]
++print("Chain-of-Causation (per trajectory):\n", extra["cot"][0])
++
++gt_xy = data["ego_future_xyz"].cpu()[0, 0, :, :2].T.numpy()
++pred_xy = pred_xyz.cpu().numpy()[0, 0, :, :, :2].transpose(0, 2, 1)
++diff = np.linalg.norm(pred_xy - gt_xy[None, ...], axis=1).mean(-1)
++min_ade = diff.min()
++print("minADE:", min_ade, "meters")
++print(
++    "Note: VLA-reasoning models produce nondeterministic outputs due to trajectory sampling, "
++    "hardware differences, etc. With num_traj_samples=1 (set for GPU memory compatibility), "
++    "variance in minADE is expected. For visual sanity checks, see notebooks/inference.ipynb"
++)
