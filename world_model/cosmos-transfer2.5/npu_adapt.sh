@@ -34,8 +34,9 @@ FUSED_ADAM_FILES=(
 )
 UTILS_FILES=(
     "${COSMOS_ROOT}/cosmos_transfer2/_src/imaginaire/utils/graph.py"
+    "${COSMOS_ROOT}/cosmos_transfer2/_src/imaginaire/utils/distributed.py"
 )
-
+CONFIG_FILES="${COSMOS_ROOT}/cosmos_transfer2/config.py"
 
 
 
@@ -103,12 +104,38 @@ if [ -f "${MINIMAL_V4_LVG_DIT_CONTROL_FACE}" ]; then
     echo -e "\033[32m[INFO] Fixed import transformer_engine syntax error successfully\033[0m"
 fi
 
-# ====================== 第六步：修改UTILS_FILES =====================
+# ====================== 第六步：修改 UTILS_FILES =====================
 for file in "${UTILS_FILES[@]}"; do
     if [ -f "${file}" ]; then
         cp "${file}" "${file}.bak"
         sed -i '/from transformer_engine/d' "${file}"
         sed -i '/import transformer_engine/d' "${file}"
+        sed -i '/pynvml.nvmlInit()/d' "${file}"
+        sed -i '/_libcudart = ctypes.CDLL("libcudart.so")/d' "${file}"
+        sed -i '/p_value = ctypes.cast/d' "${file}"
+        sed -i '/_libcudart.cudaDeviceSetLimit(ctypes.c_int(0x05), ctypes.c_int(128))/d' "${file}"
+        sed -i '/_libcudart.cudaDeviceGetLimit(p_value, ctypes.c_int(0x05))/d' "${file}"
+
     fi
     echo -e "\033[32m[INFO] Fixed import transformer_engine syntax error successfully\033[0m"
+    echo -e "\033[32m[INFO] Fixed pynvml.nvmlInit() syntax error successfully\033[0m"
 done
+
+
+# ====================== 第七步：修改 config.py 添加 CFG 并行参数 =====================
+if [ -f "${CONFIG_FILES}" ]; then
+    # 检查是否已存在 enable_cfg_parallel 参数，避免重复添加
+    if ! grep -q "enable_cfg_parallel" "${CONFIG_FILES}"; then
+        cp "${CONFIG_FILES}" "${CONFIG_FILES}.bak"
+        
+        # 在 parallel_tokenizer_grid 的文档字符串结束后插入新的参数定义
+        # 定位到文档字符串的结束标记 """，在其后插入新参数
+        sed -i '/The latent dimensions of the image or video need to be divisible by these values\./,/"""/{ /"""/a\
+    enable_cfg_parallel: bool = False\n    """Enable Classifier-Free Guidance parallelism for better scaling across more GPUs. Splits GPUs into two groups for conditional/unconditional denoising."""
+}' "${CONFIG_FILES}"
+        
+        echo -e "\033[32m[INFO] Added enable_cfg_parallel parameter to ${CONFIG_FILES} successfully\033[0m"
+    else
+        echo -e "\033[33m[WARNING] enable_cfg_parallel parameter already exists in ${CONFIG_FILES}, skipping modification\033[0m"
+    fi
+fi

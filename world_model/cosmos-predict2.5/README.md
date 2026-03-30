@@ -18,8 +18,18 @@ Cosmos-Predict2.5-2B 是 NVIDIA 推出的最新一代世界基础模型（World 
 <br>
 
 
-## Cosmos-Predict2.5-2B的相关代码仓拉取
-如果已经安装安装git-lfs，可以跳过git-lfs安装这一步。如果昇腾A3环境中没有安装git-lfs，可以安装[git-lfs-linux-arm64-v3.7.1](https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-linux-arm64-v3.7.1.tar.gz)，执行下面的步骤进行安装：
+## Cosmos-Predict2.5-2B 的相关代码仓拉取
+
+如果已安装 git-lfs，可以跳过此步骤。如果昇腾环境中未安装 git-lfs，请先根据您的主机 CPU 架构选择合适的版本进行安装：
+
+- **ARM64/AArch64 架构**：下载 [git-lfs-linux-arm64-v3.7.1.tar.gz](https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-linux-arm64-v3.7.1.tar.gz)
+- **x86_64/AMD64 架构**：下载 [git-lfs-linux-amd64-v3.7.1.tar.gz](https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-linux-amd64-v3.7.1.tar.gz)
+
+**查看 CPU 架构命令**：`uname -m`
+  - 输出 `aarch64` 或 `arm64` → 选择 ARM64 版本
+  - 输出 `x86_64` → 选择 AMD64 版本
+
+以arm架构为例，执行以下步骤进行安装：
 ```bash
 # 下载压缩包并解压
 wget --no-check-certificate https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-linux-arm64-v3.7.1.tar.gz
@@ -119,12 +129,30 @@ uv sync
 # 如果已经在cosmos-predict2.5代码仓根目录，跳过这一步。否则，需要返回cosmos-predict2.5代码仓根目录
 cd cosmos-predict2.5
 
+#适配npu
+chmod +x npu_adapt.sh
+./npu_adapt.sh
+
 # 激活uv虚拟环境
 source .venv/bin/activate
 
 # 执行下面的推理命令进行视频生成，会自动下载huggingface上的模型到~/.cache/huggingface/hub/文件夹中
-chmod +x inference_npu.sh
-uv run bash inference_npu.sh
+python examples/inference.py \
+-i assets/base/robot_pouring.json \
+-o outputs/base_video2world \
+--inference-type=video2world \
+--model="2B/post-trained" \
+--disable_guardrails
+```
+
+如需使用多NPU推理，运行下面代码，使用torchrun启动命令。
+```bash
+ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun --nproc_per_node=8 --master_port=12341 examples/inference.py \
+-i assets/base/robot_pouring.json \
+-o outputs/base_video2world \
+--inference-type=video2world \
+--model="2B/post-trained" \
+--disable_guardrails  
 ```
 
 基于上述运行过程，耗时为920秒左右，得到预测的机器人倒水视频文件，保存在./outputs/base_video2world文件夹中，为robot_pouring.mp4视频文件。

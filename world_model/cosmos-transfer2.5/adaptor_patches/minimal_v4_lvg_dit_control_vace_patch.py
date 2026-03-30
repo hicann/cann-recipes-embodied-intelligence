@@ -26,6 +26,7 @@ import torch.nn as nn
 from einops import rearrange
 from torch.distributed import ProcessGroup, get_process_group_ranks
 from torchvision import transforms
+import torch_npu
 
 from cosmos_transfer2._src.imaginaire.utils.graph import create_cuda_graph
 from cosmos_transfer2._src.predict2.conditioner import DataType
@@ -46,25 +47,23 @@ from cosmos_transfer2._src.transfer2.networks.minimal_v4_lvg_dit_control_vace im
     MinimalV4LVGControlVaceDiT,
     Block,
     ControlAwareDiTBlock,
-    ControlEncoderDiTBlock
+    ControlEncoderDiTBlock,
+    I2VCrossAttentionFull,
 )
+from .minimal_v4_dit_patch import RMSNorm
 
 
-class RMSNorm(torch.nn.Module):
-    def __init__(self, dim: int, eps: float = 1e-5):
-        super().__init__()
-        self.eps = eps
-        self.weight = nn.Parameter(torch.ones(dim))
-
-    def reset_parameters(self):
-        torch.nn.init.ones_(self.weight)
-
-    def _norm(self, x):
-        return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        output = self._norm(x.float()).type_as(x)
-        return output * self.weight
+def i2v_cross_attention_full__init__(self, *args, img_latent_dim: int = 1024, **kwargs):
+    if kwargs.get("backend") == "transformer_engine" or "backend" not in kwargs:
+        kwargs["backend"] = "minimal_a2a"
+    
+    Attention.__init__(self, *args, **kwargs)
+    inner_dim = self.head_dim * self.n_heads
+    self.k_img = nn.Linear(img_latent_dim, inner_dim, bias=False)
+    self.v_img = nn.Linear(img_latent_dim, inner_dim, bias=False)
+    self.q_img = nn.Linear(getattr(self, '_query_dim'), inner_dim, bias=False)
+    self.q_img_norm = RMSNorm(self.head_dim, eps=1e-6)
+    self.k_img_norm = RMSNorm(self.head_dim, eps=1e-6)
 
 
 def MiniTrainDITImageContext__init__(
@@ -402,5 +401,6 @@ def MinimalV4LVGControlVaceDiT__init__(
             self.enable_selective_checkpoint(sac_config, self.control_blocks)
 
 
+I2VCrossAttentionFull.__init__ = i2v_cross_attention_full__init__
 MiniTrainDITImageContext.__init__ = MiniTrainDITImageContext__init__
 MinimalV4LVGControlVaceDiT.__init__ = MinimalV4LVGControlVaceDiT__init__

@@ -14,10 +14,20 @@ Cosmos-Transfer2.5是NVIDIA Cosmos平台的世界基础模型(World Foundation M
 <br>
 
 
-## Cosmos-transfer2.5-2B的相关代码仓拉取
-如果昇腾A3环境中没有安装git-lfs，可以安装[git-lfs-linux-arm64-v3.7.1](https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-linux-arm64-v3.7.1.tar.gz),解压缩之后执行下面的步骤进行安装
+## Cosmos-transfer2.5-2B 的相关代码仓拉取
 
-```
+如果昇腾环境中未安装 git-lfs，请先根据您的主机 CPU 架构选择合适的版本进行安装：
+
+- **ARM64/AArch64 架构**：下载 [git-lfs-linux-arm64-v3.7.1.tar.gz](https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-linux-arm64-v3.7.1.tar.gz)
+- **x86_64/AMD64 架构**：下载 [git-lfs-linux-amd64-v3.7.1.tar.gz](https://github.com/git-lfs/git-lfs/releases/download/v3.7.1/git-lfs-linux-amd64-v3.7.1.tar.gz)
+
+**查看 CPU 架构命令**：`uname -m`
+  - 输出 `aarch64` 或 `arm64` → 选择 ARM64 版本
+  - 输出 `x86_64` → 选择 AMD64 版本
+
+下载完成后，解压缩并执行以下步骤进行安装：
+
+```bash
 # 赋权限
 chmod +x install.sh
 ./install.sh
@@ -45,12 +55,19 @@ cp -rf cann-recipes-embodied-intelligence/world_model/cosmos-transfer2.5/* ./cos
 ## Cosmos-transfer2.5-2B在昇腾A3上的运行环境配置
 ### 与昇腾平台相关的环境配置
 安装CANN软件包。本样例的编译执行依赖CANN开发套件包（cann-toolkit）与CANN二进制算子包（cann-kernels），支持的CANN软件版本为`CANN 8.3.RC1`。
-请从[软件包下载地址](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.3.RC1)下载`Ascend-cann-toolkit_8.3.RC1_linux-aarch64.run`与`Atlas-A3-cann-kernels_8.3.RC1_linux-aarch64.run`软件包，并参考[CANN安装文档](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/83RC1alpha002/softwareinst/instg/instg_0001.html?Mode=PmIns&OS=Debian&Software=cannToolKit)依次进行安装。
+
+请从[软件包下载地址](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.3.RC1)下载`Ascend-cann-toolkit_${version}_linux-${aarch}.run`与`Atlas-A3-cann-kernels_${version}_linux-${aarch}.run`软件包，并参考[CANN安装文档](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/83RC1alpha002/softwareinst/instg/instg_0001.html?Mode=PmIns&OS=Debian&Software=cannToolKit)依次进行安装。
+
+- ${version}表示CANN包版本号，如 8.3.RC1
+- ${aarch}表示CPU架构，如aarch64、x86_64
 
 ```bash
-# cann_path为CANN包的实际安装目录，注意每次新建终端时，首先source一下set_env.sh
-export cann_path=/usr/local/Ascend/ascend-toolkit  # cann包安装路径
-source ${cann_path}/set_env.sh
+# ${cann_install_path}为CANN包的实际安装目录，注意每次新建终端时，首先source一下set_env.sh。
+# 方式1：默认路径安装，以root用户为例
+source /usr/local/Ascend/ascend-toolkit/set_env.sh
+
+# 方式2：指定路径进行安装
+source ${cann_install_path}/ascend-toolkit/set_env.sh
 ```
 <br>
 
@@ -60,7 +77,7 @@ wget -qO- https://astral.sh/uv/install.sh | sh
 ```
 
 ### ffmpeg多媒体处理工具安装(版本4.4.2)
-```
+```bash
 # 进入cosmos-transfer2.5代码仓根目录
 cd cosmos-transfer2.5
 
@@ -70,7 +87,7 @@ chmod +x ffmpeg_install.sh
 
 
 ### decord(版本0.6.0)安装，注意和ffmpeg放置在同一文件夹下
-```
+```bash
 # 再次返回到cosmos-transfer2.5代码仓根目录
 cd cosmos-transfer2.5
 
@@ -79,7 +96,8 @@ chmod +x decord_install.sh
 ./decord_install.sh
 ```
 ### 安装libGL
-```
+```bash
+# euler环境指令如下
 yum install -y libGL libGLU libEGL libX11-devel
 ```
 
@@ -94,16 +112,14 @@ uv sync
 
 
 ### Cosmos-Transfer2.5-2B在昇腾上的推理步骤
-
-
 运行下面的代码，即可自动下载多个关联模型，然后进行模型推理。
 ```bash
-# 进入cosmos-transfer2.5代码仓根目录
+# 再次返回到cosmos-transfer2.5代码仓根目录
 cd cosmos-transfer2.5
 
-#移除GPU库
-chmod +x nvidia_remove.sh 
-./nvidia_remove.sh
+#适配npu
+chmod +x npu_adapt.sh
+./npu_adapt.sh
 
 # 激活uv虚拟环境
 source .venv/bin/activate
@@ -115,12 +131,30 @@ python examples/inference.py \
   --disable-guardrails 
 ```
 
+如需使用多NPU推理，运行下面代码，使用torchrun启动命令。
+```bash
+ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun --nproc_per_node=8 --master_port=12341 examples/inference.py \
+  -i assets/robot_example/multicontrol/robot_multicontrol_spec.json \
+  -o outputs/multicontrol \
+  --disable-guardrails 
+```
+
 ## Cosmos-transfer2.5-2B在昇腾上的精度验证步骤
 ### 基于视频观察和PAI-BENCH测试方法来验证其在昇腾A3上的推理精度
 - 和NVIDIA平台生成的预测视频进行对比，观察A3环境生成视频是否一致。
 - PAI-BENCH测试方案
   - 参考[PAI-BENCH测试框架](https://github.com/SHI-Labs/physical-ai-bench.git)中的[PAI-Bench-C(Conditional Video Generation)](https://github.com/SHI-Labs/physical-ai-bench/tree/main/conditional_generation)部分进行预测视频的质量评估。
-  - 执行PAI-BENCH测试脚本之后，会在路径下生成一个json文件，其中包含了dover_tech_score、blur_ssim、canny_f1_score、seg_m_iou等多项精度指标。
+  - 执行PAI-BENCH测试脚本之后，会在路径下生成一个json文件，其中包含了多项精度指标，评估的质量分数参考下列的数值范围：
+  <br>
+  (1)blur_ssim [0.82,0.84]
+  <br>
+  (2)canny_f1_score [0.32,0.35]
+  <br>
+  (3)depth_si_rmse [0.90,0.95]
+  <br>
+  (4)seg_m_iou [0.66,0.68]
+
+    
 
 
 ## Citation

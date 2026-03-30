@@ -30,5 +30,6 @@ from adaptor_patches import minimal_v4_dit_patch
 from adaptor_patches import minimal_v4_lvg_dit_control_vace_patch
 from adaptor_patches import qwen2_5_vl_patch
 from adaptor_patches import graph_patch
+from adaptor_patches import inference_patch
 
 

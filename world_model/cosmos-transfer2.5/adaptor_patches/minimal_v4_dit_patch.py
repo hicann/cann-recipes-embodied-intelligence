@@ -63,18 +63,18 @@ class RMSNorm(torch.nn.Module):
         return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        output = self._norm(x.float()).type_as(x)
-        return output * self.weight
+        output = torch_npu.npu_rms_norm(x, self.weight.float(), epsilon=self.eps)[0]
+        return output
 
 
 def I2VCrossAttention__init__(self, *args, img_latent_dim: int = 1024, **kwargs):
-        super(Attention, self).__init__(*args, **kwargs)
-        inner_dim = self.head_dim * self.n_heads
-        self.k_img = nn.Linear(img_latent_dim, inner_dim, bias=False)
-        self.v_img = nn.Linear(img_latent_dim, inner_dim, bias=False)
-        self.q_img = nn.Linear(self._query_dim, inner_dim, bias=False)  # NEW: separate query for image attention
-        self.q_img_norm = RMSNorm(self.head_dim, eps=1e-6)  # NEW: dedicated normalization for q_img
-        self.k_img_norm = RMSNorm(self.head_dim, eps=1e-6)
+    Attention.__init__(self, *args, **kwargs)
+    inner_dim = self.head_dim * self.n_heads
+    self.k_img = nn.Linear(img_latent_dim, inner_dim, bias=False)
+    self.v_img = nn.Linear(img_latent_dim, inner_dim, bias=False)
+    self.q_img = nn.Linear(getattr(self, '_query_dim'), inner_dim, bias=False)
+    self.q_img_norm = RMSNorm(self.head_dim, eps=1e-6)  
+    self.k_img_norm = RMSNorm(self.head_dim, eps=1e-6)
 
 
 def MiniTrainDIT__init__(
