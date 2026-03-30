@@ -1,0 +1,6 @@
+[submodule "extern/exprtk"]
+	path = extern/exprtk
+	url = https://github.com/ArashPartow/exprtk.git
+[submodule "extern/EigenRand"]
+	path = extern/EigenRand
+	url = https://github.com/bab2min/EigenRand.git

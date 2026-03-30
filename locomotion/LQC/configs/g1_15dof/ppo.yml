@@ -1,0 +1,52 @@
+num_epochs: 30000
+log_interval: 10
+
+architecture:
+  actor:
+    preprocess:
+      type: gru
+      rnn_num_layers: 1
+      shape: [ 256, 192, 128 ]
+      dropout: 0.0
+    distribution:
+      init_std: 0.3
+  critic:
+    type: gru
+    rnn_num_layers: 1
+    shape: [ 256, 192, 128 ]
+    dropout: 0.0
+    activation: SiLU
+  discriminator:
+    type: mlp
+    shape: [ 256, 128 ]
+    activation: ReLU
+    dropout: 0.2
+
+ppo:
+  schedule:
+    0: ShortTerm
+    5000: LongTerm
+    10000: FineTune
+  profiles:
+    ShortTerm:
+      num_collects: 24
+      num_learning_epochs: 3
+      gamma: 0.995
+      lamda: 0.95
+      entropy_coef: 0.01
+      num_mini_batches: 8
+      learning_rate: 2.0e-4
+      max_grad_norm: 0.5
+      symmetry_loss_coef: 4.0
+      symmetry_reward_coef: 0.1
+      symmetry_obs_slice: "slice(6, 59)"
+    LongTerm[ShortTerm]:
+      num_collects: 50
+    FineTune[LongTerm]:
+      loss_fns:
+        ActionSmoothness:
+          weight_per_action: [
+            0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
+            0.05, 0.05, 0.05, 0.05, 0.05, 0.05,
+            0.1, 0.1, 0.1,
+          ]

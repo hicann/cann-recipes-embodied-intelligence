@@ -1,0 +1,38 @@
+num_epochs: 30000
+log_interval: 10
+
+architecture:
+  actor:
+    preprocess:
+      type: lstm
+      rnn_num_layers: 1
+      shape: [ 256, 192, 128 ]
+      activation: SiLU
+    distribution:
+      init_std: 0.3
+  critic:
+    type: lstm
+    rnn_num_layers: 1
+    shape: [ 128, 128, 128 ]
+    activation: SiLU
+
+ppo:
+  schedule:
+    - [ 0, BASE ]
+    - [ 20000, finetune ]
+  profiles:
+    BASE:
+      num_collects: 24
+      num_learning_epochs: 4
+      gamma: 0.992
+      lamda: 0.95
+      entropy_coef: 0.005
+      num_mini_batches: 4
+      learning_rate: 2.0e-4
+      max_grad_norm: 0.5
+      symmetry_coef: 1.0
+    finetune[BASE]:
+      num_collects: 100
+      entropy_coef: 0.002
+      symmetry_coef: 1.0
+      smooth_coef: 0.05

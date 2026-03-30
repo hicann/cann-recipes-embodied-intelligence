@@ -1,0 +1,80 @@
+num_epochs: 20000
+log_interval: 1
+
+architecture:
+  actor:
+    preprocess:
+      type: sequential
+      modules:
+      - type: concat
+        modules:
+        - type: lstm
+          rnn_num_layers: 2
+          rnn_hidden_dim: 256
+          dropout: 0.0
+          input_dim: 55
+        - type: cnn
+          input_shape: [ 20, 15 ]
+          activation: LeakyReLU
+          output_dim: 64
+          layers:
+            - Conv2d(1, 16, kernel_size=3, stride=2)
+            - LeakyReLU()
+            - Conv2d(16, 8, kernel_size=3, stride=2)
+            - LeakyReLU()
+      - type: mlp
+        shape: [ 256, 128 ]
+        activation: SiLU
+    distribution:
+      init_std: 0.3
+  critic:
+    type: sequential
+    modules:
+    - type: concat
+      modules:
+      - type: lstm
+        rnn_num_layers: 2
+        rnn_hidden_dim: 256
+        input_dim: 58
+        dropout: 0.0
+      - type: cnn
+        input_shape: [ 20, 15 ]
+        activation: LeakyReLU
+        output_dim: 64
+        layers:
+          - Conv2d(1, 16, kernel_size=3, stride=2)
+          - LeakyReLU()
+          - Conv2d(16, 8, kernel_size=3, stride=2)
+          - LeakyReLU()
+    - type: mlp
+      shape: [ 256, 128 ]
+      activation: SiLU
+
+ppo:
+  schedule:
+    0: ShortTerm
+    5000: LongTerm
+    15000: Final
+  profiles:
+    ShortTerm:
+      num_collects: 24
+      num_learning_epochs: 3
+      gamma: 0.995
+      lamda: 0.95
+      entropy_coef: 0.01
+      num_mini_batches: 8
+      learning_rate: 2.0e-4
+      max_grad_norm: 0.5
+    LongTerm[ShortTerm]:
+      num_collects: 50
+      entropy_coef: 0.005
+    Final[LongTerm]:
+      desired_kl: 0.01
+      entropy_coef: 0.0025
+      loss_fns:
+        ActionSmoothness:
+          weight_per_action: [
+            0.05, 0.025, 0.05, 0.02, 0.05, 0.05,
+            0.05, 0.025, 0.05, 0.02, 0.05, 0.05,
+            0.1, 0.1, 0.1,
+          ]

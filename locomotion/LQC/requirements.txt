@@ -1,0 +1,27 @@
+numpy~=1.26.4
+torch==2.7.1 --extra-index-url https://download.pytorch.org/whl/cpu
+torch-npu==2.7.1
+onnx~=1.17.0
+onnxruntime~=1.20.1
+gymnasium~=0.28.1
+matplotlib~=3.10.0
+pybind11~=2.13.6
+pyyaml~=6.0.2
+tqdm~=4.67.1
+wandb~=0.19.1
+evdev~=1.7.0
+onnxsim~=0.4.36
+attrs>=23.0.0
+decorator>=5.1.0
+ml-dtypes
+scipy>=1.7.3
+tornado
+loguru
+msguard
+openpyxl
+opentelemetry-exporter-otlp-proto-grpc==1.33.1
+opentelemetry-exporter-otlp-proto-http==1.33.1
+pandas~=2.2
+absl-py
+opencv-python~=4.10.0.84
+pynput
