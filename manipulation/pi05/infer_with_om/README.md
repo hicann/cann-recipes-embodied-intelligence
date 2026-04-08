@@ -284,9 +284,10 @@ python lerobot_eval_om.py \
 | :--- | ---: |
 | PaliGemma (Part1) | 223.08 |
 | Gemma (Part2) | 15.58 |
-| End-to-End | 378.874 |
+| End-to-End | 410.2 |
 - Part1 为 VLM Part，每次推理仅允许一次
 - Part2 为 Action Expert，每次推理按照 Config 中的 num_inference_steps 推理 10 次
+- E2E 包含 Part1 + 10 * Part2 以及 KV-Cache拷贝等时间
 
 #### 2. OM 推理正确性验证 (Action 相似度比较)
 - Tips：使用 input_data/start_obs_0.pt 输入，比较 OM 和 Pytorch 推理动作
