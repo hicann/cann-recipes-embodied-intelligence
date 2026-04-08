@@ -1,7 +1,7 @@
 # Learning-based Quadruped Robot Controller
 
 ## 概述
-Learning-based Quadruped Robot Controller (LQC) 是适用于ARM架构的昇腾A2服务器的足式机器人强化学习运动控制算法，支持宇树G1、GO2等多款主流机器人本体的模型导入、一键式训练和推理验证。本样例基于[IROS2025](#citation)的理论工作，在昇腾A2服务器上服务器上完成了优化和迁移，旨在推动昇腾服务器在足式机器人领域的场景化落地，助力足式机器人产业的智能化升级。
+Learning-based Quadruped Robot Controller (LQC) 是适用于足式机器人的强化学习运动控制算法，支持宇树G1、GO2等多款主流机器人本体的模型导入、一键式训练和推理验证。本样例基于[IROS2025](#citation)的理论工作，在昇腾A2服务器上服务器上完成了优化和迁移，旨在推动昇腾服务器在足式机器人领域的场景化落地，助力足式机器人产业的智能化升级。
 
 ## 环境准备
 
