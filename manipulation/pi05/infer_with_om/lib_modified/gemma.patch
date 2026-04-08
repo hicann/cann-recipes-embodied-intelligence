@@ -1,0 +1,78 @@
+--- a/transformers/models/gemma/modeling_gemma.py
++++ b/transformers/models/gemma/modeling_gemma.py
+@@ -65,7 +65,6 @@
+ 
+     def _norm(self, x):
+         # Compute variance in float32 (like the source implementation)
+-        #var = torch.mean(torch.square(x.float()), dim=-1, keepdim=True)
+         x_fp32 = x.to(torch.float32)               # 转换为float类型
+         sum_square = x_fp32.pow(2).sum(dim=-1, keepdim=True)  # 沿最后一维求和
+         var = sum_square / x_fp32.size(-1)
+@@ -104,13 +103,8 @@
+         gate = modulation[..., 2*chunk_size:]         # 第 2 份：从 2*chunk_size 到末尾
+         
+         # Apply adaptive normalization: use model weight dtype to ensure compatibility
+-        # model_dtype = self.dense.weight.dtype  # Use the model's dtype (bfloat16)
+-        # scale = scale.to(model_dtype)
+-        # shift = shift.to(model_dtype)
+-        # gate = gate.to(model_dtype)
+-        # normed_inputs = normed_inputs.to(model_dtype)  # Convert normed_inputs to model dtype
+-        
+-        normed_inputs = normed_inputs * (1 + scale.to(torch.float32)) + shift.to(torch.float32)
++        model_dtype = self.dense.weight.dtype
++        normed_inputs = normed_inputs * (1 + scale.to(model_dtype)) + shift.to(model_dtype)
+ 
+         return normed_inputs.to(dtype), gate.to(dtype)
+ 
+@@ -168,7 +162,7 @@
+             emb = torch.cat((freqs, freqs), dim=-1)
+             cos = (emb + torch.pi/2).sin() * self.attention_scaling
+             sin = emb.sin() * self.attention_scaling
+-        
++
+         return cos.to(dtype=x.dtype), sin.to(dtype=x.dtype)
+ 
+ 
+@@ -199,8 +193,6 @@
+     Returns:
+         `tuple(torch.Tensor)` comprising of the query and key tensors rotated using the Rotary Position Embedding.
+     """
+-    q = q.to(torch.float32)
+-    k = k.to(torch.float32)
+     cos = cos.unsqueeze(unsqueeze_dim)
+     sin = sin.unsqueeze(unsqueeze_dim)
+     q_embed = (q * cos) + (rotate_half(q) * sin)
+@@ -255,13 +247,14 @@
+     value_states = repeat_kv(value, module.num_key_value_groups)
+ 
+     attn_weights = torch.matmul(query, key_states.transpose(2, 3)) * scaling
++    
+     if attention_mask is not None:
+         causal_mask = attention_mask[:, :, :, : key_states.shape[-2]]
+         attn_weights = attn_weights + causal_mask
+ 
+-    attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query.dtype)
++    attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query.dtype)  
+     attn_weights = nn.functional.dropout(attn_weights, p=dropout, training=module.training)
+-    attn_output = torch.matmul(attn_weights, value_states)
++    attn_output = torch.matmul(attn_weights, value_states.to(query.dtype))
+     attn_output = attn_output.transpose(1, 2).contiguous()
+ 
+     return attn_output, attn_weights
+@@ -437,8 +430,6 @@
+         self.vocab_size = config.vocab_size
+ 
+         self.embed_tokens = nn.Embedding(config.vocab_size, config.hidden_size, self.padding_idx)
+-        # print(config.vocab_size, config.hidden_size, self.padding_idx)
+-        # print(self.embed_tokens)
+         self.layers = nn.ModuleList(
+             [GemmaDecoderLayer(config, layer_idx) for layer_idx in range(config.num_hidden_layers)]
+         )
+@@ -535,7 +526,6 @@
+         all_hidden_states = () if output_hidden_states else None
+         all_self_attns = () if output_attentions else None
+ 
+-        # print("reached here 3")
+ 
+         for decoder_layer in self.layers[: self.config.num_hidden_layers]:
+             if output_hidden_states:

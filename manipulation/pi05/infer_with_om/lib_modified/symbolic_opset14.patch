@@ -1,0 +1,23 @@
+--- a/torch/onnx/symbolic_opset14.py
++++ b/torch/onnx/symbolic_opset14.py
+@@ -170,6 +170,7 @@
+     key_transposed = g.op("Transpose", key, perm_i=key_transposed_axes)
+ 
+     # https://github.com/pytorch/pytorch/blob/12da0c70378b5be9135c6fda62a9863bce4a4818/aten/src/ATen/native/transformers/attention.cpp#L653
++    # Scale q, k before matmul for stability see https://tinyurl.com/sudb9s96 for math
+     scale_o = g.op("Sqrt", scale)
+     # 转换为浮点类型（避免复数），10对应ONNX的FLOAT（32位浮点数）
+     scale_float = g.op("Cast", scale_o, to_i=10)
+@@ -178,11 +179,7 @@
+     query_scaled = g.op("Mul", query, scale_float)
+     key_transposed_scaled = g.op("Mul", key_transposed, scale_float)
+     mul_qk = g.op("MatMul", query_scaled, key_transposed_scaled)
+-    # Scale q, k before matmul for stability see https://tinyurl.com/sudb9s96 for math
+-    # query_scaled = g.op("Mul", query, g.op("Sqrt", scale))
+-    # key_transposed_scaled = g.op("Mul", key_transposed, g.op("Sqrt", scale))
+-    # mul_qk = g.op("MatMul", query_scaled, key_transposed_scaled)
+-   
++
+     if symbolic_helper._is_none(attn_mask):
+         mul_qk_add = mul_qk
+     elif (
