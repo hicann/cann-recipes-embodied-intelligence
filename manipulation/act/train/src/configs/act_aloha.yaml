@@ -1,0 +1,30 @@
+dataset:
+  repo_id: lerobot/aloha_sim_transfer_cube_human
+  root: ../dataset/lerobot/aloha_sim_transfer_cube_human
+
+env:
+  type: aloha
+  task: AlohaTransferCube-v0
+
+policy:
+  type: act
+  device: npu
+  push_to_hub: false
+  pretrained_backbone_weights: ResNet18_Weights.IMAGENET1K_V1
+
+output_dir: ../ckpt/act_aloha
+batch_size: 8
+job_name: act_aloha
+resume: false
+seed: 1000
+num_workers: 4
+steps: 100000
+eval_freq: -1
+log_freq: 200
+save_checkpoint: true
+save_freq: 20000
+use_policy_training_preset: true
+
+wandb:
+  enable: true
+  project: lerobot
