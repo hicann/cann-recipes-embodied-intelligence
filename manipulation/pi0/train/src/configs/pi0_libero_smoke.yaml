@@ -1,0 +1,28 @@
+dataset:
+  repo_id: HuggingFaceVLA/libero
+  root: ../dataset/HuggingFaceVLA/libero
+
+policy:
+  type: pi0
+  device: npu
+  push_to_hub: false
+  dtype: bfloat16
+  gradient_checkpointing: true
+  compile_model: false
+  pretrained_path: ../models/lerobot/pi0_base
+
+output_dir: ../ckpt/pi0_libero_smoke
+batch_size: 16  # per-device batch size; on 8 cards the effective global batch is 128
+job_name: pi0_libero_smoke
+resume: false
+seed: 42
+num_workers: 4
+steps: 20
+eval_freq: -1
+log_freq: 1
+save_checkpoint: true
+save_freq: 20
+use_policy_training_preset: true
+
+wandb:
+  enable: false
