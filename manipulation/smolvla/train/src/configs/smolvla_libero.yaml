@@ -1,0 +1,36 @@
+dataset:
+  repo_id: HuggingFaceVLA/libero
+  root: ../dataset/HuggingFaceVLA/libero
+
+policy:
+  type: smolvla
+  device: npu
+  push_to_hub: false
+  pretrained_path: ../models/lerobot/smolvla_base
+  vlm_model_name: ../models/HuggingFaceTB/SmolVLM2-500M-Video-Instruct
+  empty_cameras: 1
+  freeze_vision_encoder: true
+  train_expert_only: true
+  train_state_proj: true
+  tokenizer_max_length: 48
+  num_steps: 10
+  use_cache: true
+  load_vlm_weights: true
+
+output_dir: ../ckpt/smolvla_libero
+batch_size: 32
+job_name: smolvla_libero
+resume: false
+seed: 1000
+num_workers: 4
+steps: 1600
+eval_freq: -1
+log_freq: 10
+save_checkpoint: true
+save_freq: 500
+use_policy_training_preset: true
+
+wandb:
+  enable: true
+  project: smolvla_libero
+  disable_artifact: true
