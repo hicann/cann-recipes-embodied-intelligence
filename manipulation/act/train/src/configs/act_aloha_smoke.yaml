@@ -1,6 +1,7 @@
 dataset:
   repo_id: lerobot/aloha_sim_transfer_cube_human
   root: ../dataset/lerobot/aloha_sim_transfer_cube_human
+  video_backend: torchcodec
 
 policy:
   type: act

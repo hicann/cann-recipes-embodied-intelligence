@@ -7,12 +7,21 @@
 - 长训配置：`act_aloha.yaml`
 - 输出目录：`../ckpt/act_aloha_<timestamp>`（相对 `lerobot` 根目录）
 - 训练步数：`100000`
+- 默认视频后端：`torchcodec`
 - 结论：可在昇腾 Atlas A2 集群上 8 卡并行进行 ACT 模型训练
 
 ### 1.2 在线评测
 - 评测方式：CPU 执行 MuJoCo 仿真与渲染，NPU 执行 policy 推理
 - 环境变量：`MUJOCO_GL=osmesa`
 - 500 episode 聚合成功率：`68.0%`
+
+### 1.3 `torchcodec` 快速吞吐对比
+- 任务：`ACT`, `8 cards`, `per-device batch_size=64`, `100 steps`
+- 当前参考最佳结果如下：
+
+| 配置         | 统计区间      | mean_updt_s | mean_data_s | end-to-end samples/s |
+| ------------ | ------------- | ----------: | ----------: | -------------------: |
+| `torchcodec` | `step 10~100` |    `0.3191` |    `0.3544` |             `760.24` |
 
 ## 3. 为什么推荐仿真在 CPU、推理在 NPU
 在线 ALOHA 评测依赖 MuJoCo 的无头渲染环境。实践中更稳妥的做法是：

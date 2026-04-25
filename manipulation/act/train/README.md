@@ -59,7 +59,7 @@ chmod +x manipulation/act/train/src/scripts/setup.sh
 该脚本会：
 - 在 `cann-recipes` 同级目录下准备 `lerobot` 代码仓；
 - checkout 到固定 commit `58f70b6bd370864139a3795ac3497a9eae8c42d5`；
-- 应用当前已验证的 Ascend 训练补丁；
+- 应用当前已验证的 Ascend 训练补丁（包含 ACT 使用 `torchcodec` 所需的视频解码容忍度修正）；
 - 安装 ACT 所需的 LeRobot 通用 Python 依赖与 `gym-aloha`；
 - 默认复用当前已激活环境中的 `torch` / `torch_npu`；
 - 如需在新环境中执行，可通过参数创建 conda 环境，并通过本地 wheel 注入平台相关的 `torch` / `torchvision` / `torch_npu`。
@@ -170,6 +170,7 @@ python -c "import torch; print(torch.hub.get_dir())"
 ### 5.2 长训配置
 - 配置文件：`src/configs/act_aloha.yaml`
 - 关键参数：
+  - `dataset.video_backend: torchcodec`
   - `steps: 100000`
   - `batch_size: 8`
   - `num_workers: 4`
@@ -207,6 +208,7 @@ export MUJOCO_GL=osmesa
 - 这种方式对应“仿真在 CPU，推理在 NPU”。
 
 ## 7. 已验证结果摘要
+当前样例已切换为默认使用 `torchcodec` 解码视频。
 当前已验证的一组参考结果：
 - 训练任务：ACT on `lerobot/aloha_sim_transfer_cube_human`
 - 任务环境：`AlohaTransferCube-v0`
@@ -214,20 +216,21 @@ export MUJOCO_GL=osmesa
 - 训练硬件：昇腾 Atlas A2 `8` 卡
 - 训练步数：`100000`
 - 训练 batch 配置：`batch_size: 8`，全局 batch size `64`
-- 训练吞吐参考：
-  - 统计区间：W&B `train/steps = 5000 ~ 20000`
-  - 统计口径：`samples/s = global_batch / (train/update_s + train/dataloading_s)`
-  - 平均吞吐：`221.18 samples/s`
+- 统计区间：W&B `train/steps = 5000 ~ 20000`
 - 评测方式：`5 x 100` episodes
 - 评测总成功率：`68.0%`
+
+当前已完成一组 `100 step` 的快速吞吐验证，可作为当前配置下的参考最佳结果：
+
+| 场景                          | 统计区间      | mean_updt_s | mean_data_s | end-to-end samples/s |
+| ----------------------------- | ------------- | ----------: | ----------: | -------------------: |
+| `8 cards x bs64 x torchcodec` | `step 10~100` |    `0.3191` |    `0.3544` |             `760.24` |
 
 更详细的环境、日志、checkpoint 路径和评测说明见：
 - [doc/README.md](doc/README.md)
 
 说明：
-- 上述吞吐为 8 卡总吞吐，不是单卡吞吐；
-- `samples/s` 使用 W&B 完整 history 计算，包含 dataloader 开销；
-- 若只看纯计算阶段，`global_batch / train/update_s` 的去极值均值约为 `265.51 samples/s`。
+- 默认配置中的 `video_backend` 已显式设置为 `torchcodec`；
 
 ## 8. W&B 记录占位
 ![image.png](https://raw.gitcode.com/user-images/assets/8784759/fba46207-e73a-49af-84e9-cc39db1224de/image.png 'wandb日志图')
