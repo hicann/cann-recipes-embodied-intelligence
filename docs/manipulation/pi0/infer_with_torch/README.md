@@ -32,17 +32,16 @@ from torch_npu.contrib import transfer_to_npu
   通过修改`paligemma_with_expert.py`中`class PaliGemmaWithExpertModel(PreTrainedModel)`中forward函数中的旋转编码计算逻辑，修改apply_rope函数中的输入输出，利用torch_npu.npu_rotary_mul融合算子，并将Q/K_states进行融合计算拆分，同时将sin/cos计算提到for循环外部进行统一计算，减少其重复计算次数等手段，可以实现旋转编码部分的优化加速。优化的部分代码片段如下所示：
   ```
   def apply_rope(query_states, key_states, cos, sin):
-    N_q = query_states.shape[2]
-    N_k = key_states.shape[2]
-    
-    merged_states = torch.cat([query_states, key_states], dim=2)  # 维度为[B, S, N_q + N_k, D]
-    
-    merged_rot = torch_npu.npu_rotary_mul(merged_states, cos, sin)
-    
-    q_rot, k_rot = merged_rot.split([N_q, N_k], dim=2)
+      n_q = query_states.shape[2]
+      n_k = key_states.shape[2]
+      
+      merged_states = torch.cat([query_states, key_states], dim=2)  # 维度为[B, S, n_q + n_k, D]
+      
+      merged_rot = torch_npu.npu_rotary_mul(merged_states, cos, sin)
+      
+      q_rot, k_rot = merged_rot.split([n_q, n_k], dim=2)
 
-    return q_rot, k_rot
-
+      return q_rot, k_rot
   ```
   
 

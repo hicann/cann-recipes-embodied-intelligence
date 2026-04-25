@@ -46,8 +46,12 @@ pip install "transformers @ git+https://github.com/huggingface/transformers.git@
 请从[软件包下载地址](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.2.RC1)下载`Ascend-cann-toolkit_8.2.RC1_linux-x86_64.run`与`Ascend-cann-kernels-310p_8.2.RC1_linux-x86_64.run`软件包，并参考[CANN安装文档](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/82RC1/softwareinst/instg/instg_quick.html?Mode=PmIns&InstallType=local&OS=Debian&Software=cannToolKit)依次进行安装。
 
 ```bash
-# xxxx为CANN包的实际安装目录，注意每次新建终端时，source一下setenv.bash。
-source xxxx/ascend-toolkit/setenv.bash
+# ${cann_install_path}为CANN包的实际安装目录，注意每次新建终端时，首先source一下set_env.sh。
+# 方式1：默认路径安装，以root用户为例
+source /usr/local/Ascend/ascend-toolkit/set_env.sh
+
+# 方式2：指定路径进行安装
+source ${cann_install_path}/ascend-toolkit/set_env.sh
 
 # 在上述运行环境中继续安装对应版本torch-npu
 pip install numpy==1.26.4

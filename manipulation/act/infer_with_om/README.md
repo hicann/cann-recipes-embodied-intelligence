@@ -73,8 +73,12 @@ ACT 是一种典型的基于 Transformer 的模仿学习控制策略，其核心
 本样例的编译执行依赖CANN开发套件包（cann-toolkit）与CANN二进制算子包（cann-kernels），支持的CANN软件版本为`CANN 8.0.0-8.2.RC1`。 请从[软件包下载地址](https://www.hiascend.com/developer/download/community/result?module=cann&cann=8.2.RC1)下载对应架构软件包，例如` Ascend-cann-toolkit_8.2.RC1_linux-x86_64.run`与` Ascend-cann-kernels-310b_8.2.RC1_linux-x86_64.run`软件包，并参考[CANN安装文档](https://www.hiascend.com/document/detail/zh/CANNCommunityEdition/83RC1alpha002/softwareinst/instg/instg_0001.html?Mode=PmIns&OS=Debian&Software=cannToolKit)依次进行安装。
 
 ```
-# xxxx为CANN包的实际安装目录，注意每次新建终端时，激活一下setenv.bash
-source xxxx/ascend-toolkit/setenv.bash
+# ${cann_install_path}为CANN包的实际安装目录，注意每次新建终端时，首先source一下set_env.sh。
+# 方式1：默认路径安装，以root用户为例
+source /usr/local/Ascend/ascend-toolkit/set_env.sh
+
+# 方式2：指定路径进行安装
+source ${cann_install_path}/ascend-toolkit/set_env.sh
 ```
 
 #### 与昇腾服务器无关的环境配置

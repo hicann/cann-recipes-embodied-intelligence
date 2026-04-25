@@ -222,12 +222,16 @@ A robotic arm, primarily white with black joints and cables, is shown in a clean
 - 检查整体代码目录树，经过上述的复制及替换操作，cosmos-predict2.5适配昇腾的根目录中的最终相关代码目录树如下所示：
 ```bash
 cosmos-predict2.5
+├── adaptor_patches
+|   ├── monkey_patch.py
+├── examples
+|   ├── inference.py
 ├── packages
 |   ├── cosmos-oss
 |   |   ├── pyproject.toml
 └── decord_install.sh
 └── ffmpeg_install.sh
-└── inference_npu.sh
+└── npu_adapt.sh
 └── pyproject.toml
 └── README.md
 ```

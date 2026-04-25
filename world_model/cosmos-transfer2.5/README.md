@@ -190,6 +190,7 @@ ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 torchrun --nproc_per_node=8 --master_p
 cosmos-transfer2.5
 ├── adaptor_patches
 │   ├── graph_patch.py
+│   ├── inference_patch.py
 │   ├── minimal_v4_dit_patch.py
 │   ├── minimal_v4_lvg_dit_control_vace_patch.py
 │   └── qwen2_5_vl_patch.py
@@ -200,7 +201,7 @@ cosmos-transfer2.5
 │   ├── inference.py
 │   └── model_adaptor.py
 ├── ffmpeg_install.sh
-├── nvidia_remove.sh
+├── npu_adapt.sh
 ├── packages
 │   └── cosmos-oss
 │       ├── cosmos_oss
