@@ -17,8 +17,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import os
 import time
 from contextlib import nullcontext
+from pathlib import Path
 from pprint import pformat
 from typing import Any
 
@@ -53,6 +55,7 @@ from lerobot.utils.train_utils import (
     update_last_checkpoint,
 )
 from lerobot.utils.utils import (
+    _resolve_ddp_settings,
     format_big_number,
     has_method,
     init_logging,
@@ -70,6 +73,41 @@ experimental_config = torch_npu.profiler._ExperimentalConfig(
     record_op_args=False,
     gc_detect_threshold=None,
 )
+
+
+
+
+
+def _resolve_ddp_settings(policy_type: str) -> tuple[bool, bool, bool]:
+    is_pi05 = policy_type == "pi05"
+    find_unused = _env_flag("LEROBOT_DDP_FIND_UNUSED_PARAMETERS", not is_pi05)
+    static_graph = _env_flag("LEROBOT_DDP_STATIC_GRAPH", is_pi05)
+    gradient_as_bucket_view = _env_flag("LEROBOT_DDP_GRADIENT_AS_BUCKET_VIEW", is_pi05)
+    return find_unused, static_graph, gradient_as_bucket_view
+
+
+def _finalize_validate_after_output_dir_conflict(cfg: TrainPipelineConfig) -> None:
+    """Complete the side effects skipped when non-zero ranks ignore output_dir conflicts."""
+    if isinstance(cfg.dataset.repo_id, list):
+        raise NotImplementedError("LeRobotMultiDataset is not currently implemented.")
+
+    if not cfg.use_policy_training_preset and (cfg.optimizer is None or cfg.scheduler is None):
+        raise ValueError("Optimizer and Scheduler must be set when the policy presets are not used.")
+    if cfg.use_policy_training_preset and not cfg.resume:
+        cfg.optimizer = cfg.policy.get_optimizer_preset()
+        cfg.scheduler = cfg.policy.get_scheduler_preset()
+
+    if cfg.policy.push_to_hub and not cfg.policy.repo_id:
+        raise ValueError(
+            "policy.repo_id argument missing. Please specify it to push the model to the hub."
+        )
+
+    if cfg.use_rabc and not cfg.rabc_progress_path:
+        repo_id = cfg.dataset.repo_id
+        if cfg.dataset.root:
+            cfg.rabc_progress_path = str(Path(cfg.dataset.root) / "sarm_progress.parquet")
+        else:
+            cfg.rabc_progress_path = f"hf://datasets/{repo_id}/sarm_progress.parquet"
 
 
 # pylint: disable=huawei-too-many-arguments
@@ -163,17 +201,35 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
         cfg: A `TrainPipelineConfig` object containing all training configurations.
         accelerator: Optional Accelerator instance. If None, one will be created automatically.
     """
-    cfg.validate()
+    local_rank = int(os.getenv("LOCAL_RANK", "0"))
+    try:
+        cfg.validate()
+    except FileExistsError:
+        if local_rank == 0 or not Path(cfg.output_dir).exists():
+            raise
+        logging.warning(
+            "Ignoring existing output_dir on non-zero local rank %s: %s",
+            local_rank,
+            cfg.output_dir,
+        )
+        _finalize_validate_after_output_dir_conflict(cfg)
+
+    ddp_find_unused_parameters, ddp_static_graph, ddp_gradient_as_bucket_view = _resolve_ddp_settings(
+        getattr(cfg.policy, "type", "")
+    )
 
     # Create Accelerator if not provided
     # It will automatically detect if running in distributed mode or single-process mode
     # We set step_scheduler_with_optimizer=False to prevent accelerate from adjusting
     # the lr_scheduler steps based on the num_processes
-    # We set find_unused_parameters=True to handle models with conditional computation
     if accelerator is None:
         from accelerate.utils import DistributedDataParallelKwargs
 
-        ddp_kwargs = DistributedDataParallelKwargs(find_unused_parameters=True)
+        ddp_kwargs = DistributedDataParallelKwargs(
+            find_unused_parameters=ddp_find_unused_parameters,
+            static_graph=ddp_static_graph,
+            gradient_as_bucket_view=ddp_gradient_as_bucket_view,
+        )
         accelerator = Accelerator(
             step_scheduler_with_optimizer=False, kwargs_handlers=[ddp_kwargs]
         )
@@ -187,6 +243,40 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     # Only log on main process
     if is_main_process:
         logging.info(pformat(cfg.to_dict()))
+        logging.info(
+            "DDP settings: find_unused_parameters=%s static_graph=%s gradient_as_bucket_view=%s",
+            ddp_find_unused_parameters,
+            ddp_static_graph,
+            ddp_gradient_as_bucket_view,
+        )
+
+    profile_wait = int(os.getenv("LEROBOT_PROFILE_WAIT", "12"))
+    profile_warmup = int(os.getenv("LEROBOT_PROFILE_WARMUP", "5"))
+    profile_active = int(os.getenv("LEROBOT_PROFILE_ACTIVE", "3"))
+    profile_repeat = int(os.getenv("LEROBOT_PROFILE_REPEAT", "1"))
+    disable_outer_suffix_checkpoint = (
+        os.getenv("PI05_DISABLE_OUTER_TRAIN_SUFFIX_CHECKPOINT", "").strip().lower()
+        in {"1", "true", "yes", "on"}
+    )
+    profile_root = Path(
+        os.getenv("LEROBOT_PROFILE_DIR", str(Path(cfg.output_dir) / "profiling"))
+    )
+    profile_rank_dir = profile_root / f"rank{accelerator.process_index}"
+    profile_rank_dir.mkdir(parents=True, exist_ok=True)
+
+    if is_main_process:
+        logging.info(
+            "Profiling schedule: wait=%s warmup=%s active=%s repeat=%s",
+            profile_wait,
+            profile_warmup,
+            profile_active,
+            profile_repeat,
+        )
+        logging.info(
+            "PI05 disable outer train suffix checkpoint: %s",
+            disable_outer_suffix_checkpoint,
+        )
+        logging.info("Profiling root dir: %s", profile_root)
 
     # Initialize wandb only on main process
     if cfg.wandb.enable and cfg.wandb.project and is_main_process:
@@ -398,8 +488,10 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
             torch_npu.profiler.ProfilerActivity.CPU,
             torch_npu.profiler.ProfilerActivity.NPU,
         ],
-        schedule=torch_npu.profiler.schedule(wait=12, warmup=5, active=3),
-        on_trace_ready=torch_npu.profiler.tensorboard_trace_handler("./profiling/"),
+        schedule=torch_npu.profiler.schedule(
+            wait=profile_wait, warmup=profile_warmup, active=profile_active, repeat=profile_repeat
+        ),
+        on_trace_ready=torch_npu.profiler.tensorboard_trace_handler(str(profile_rank_dir)),
         record_shapes=True,
         profile_memory=True,
         # with_stack=True,

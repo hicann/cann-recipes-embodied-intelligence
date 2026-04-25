@@ -17,6 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
+import os
 import time
 from contextlib import nullcontext
 from pprint import pformat
@@ -53,10 +54,22 @@ from lerobot.utils.train_utils import (
     update_last_checkpoint,
 )
 from lerobot.utils.utils import (
+    _resolve_ddp_settings,
     format_big_number,
     has_method,
     init_logging,
 )
+
+
+
+
+
+def _resolve_ddp_settings(policy_type: str) -> tuple[bool, bool, bool]:
+    is_pi05 = policy_type == "pi05"
+    find_unused = _env_flag("LEROBOT_DDP_FIND_UNUSED_PARAMETERS", not is_pi05)
+    static_graph = _env_flag("LEROBOT_DDP_STATIC_GRAPH", is_pi05)
+    gradient_as_bucket_view = _env_flag("LEROBOT_DDP_GRADIENT_AS_BUCKET_VIEW", is_pi05)
+    return find_unused, static_graph, gradient_as_bucket_view
 
 
 # pylint: disable=huawei-too-many-arguments
@@ -150,15 +163,22 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     """
     cfg.validate()
 
+    ddp_find_unused_parameters, ddp_static_graph, ddp_gradient_as_bucket_view = _resolve_ddp_settings(
+        getattr(cfg.policy, "type", "")
+    )
+
     # Create Accelerator if not provided
     # It will automatically detect if running in distributed mode or single-process mode
     # We set step_scheduler_with_optimizer=False to prevent accelerate from adjusting
     # the lr_scheduler steps based on the num_processes
-    # We set find_unused_parameters=True to handle models with conditional computation
     if accelerator is None:
         from accelerate.utils import DistributedDataParallelKwargs
 
-        ddp_kwargs = DistributedDataParallelKwargs(find_unused_parameters=True)
+        ddp_kwargs = DistributedDataParallelKwargs(
+            find_unused_parameters=ddp_find_unused_parameters,
+            static_graph=ddp_static_graph,
+            gradient_as_bucket_view=ddp_gradient_as_bucket_view,
+        )
         accelerator = Accelerator(
             step_scheduler_with_optimizer=False, kwargs_handlers=[ddp_kwargs]
         )
@@ -172,6 +192,12 @@ def train(cfg: TrainPipelineConfig, accelerator: Accelerator | None = None):
     # Only log on main process
     if is_main_process:
         logging.info(pformat(cfg.to_dict()))
+        logging.info(
+            "DDP settings: find_unused_parameters=%s static_graph=%s gradient_as_bucket_view=%s",
+            ddp_find_unused_parameters,
+            ddp_static_graph,
+            ddp_gradient_as_bucket_view,
+        )
 
     # Initialize wandb only on main process
     if cfg.wandb.enable and cfg.wandb.project and is_main_process:

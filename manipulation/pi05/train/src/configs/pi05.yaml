@@ -16,7 +16,7 @@ policy:
   dtype: bfloat16
   gradient_checkpointing: true
   pretrained_path: lerobot/pi05_base
-  compile_model: true
+  compile_model: false
   normalization_mapping: {"ACTION": "MEAN_STD", "STATE": "MEAN_STD", "VISUAL": "IDENTITY"}
 
 # output_dir: ./ckpt/pi05_meta
