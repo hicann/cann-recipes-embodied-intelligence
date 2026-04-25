@@ -1,6 +1,7 @@
 # cann-recipes-embodied-intelligence
 
 ## 🚀Latest News
+- [2026/05] Hunyuan3D 2.0 三维生成与渲染模型在昇腾Atlas A2上推理以支持，增加dit-cache方案优化，样例已开源。
 - [2026/04] PI0模型支持在昇腾Atlas A2上训练，样例已开源。
 - [2026/04] SmolVLA模型支持在昇腾Atlas A2上训练，样例已开源。
 - [2026/04] ACT模型支持在昇腾Atlas A2上训练，样例已开源。
