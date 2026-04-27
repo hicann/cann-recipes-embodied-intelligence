@@ -96,6 +96,14 @@ cann-recipes-embodied-intelligence 仓库针对具身智能领域的典型模型
 | **Hunyuan3D 2.0** | | | | |
 | [在线推理](3d_vision/Hunyuan3D/README.md) | Atlas A2 | 在线推理 | 腾讯混元三维生成与渲染模型，支持文本/图像生成高保真3D资产，带高分辨率纹理贴图。 | **~26 s** (texgen，2万平面mesh) |
 
+## 🏃 一站式平台快速体验
+
+「一站式平台」是为开发者提供的 NPU 环境，内部已集成完整的 CANN 环境，可以直接使用。cann-recipes-embodied-intelligence 针对该平台在相应样例 README 中提供了简化的「快速启动」路径，帮助用户最小步骤完成 NPU 推理体验。当前支持的模型正在持续扩展中，敬请关注：
+
+|实践|简介|
+|-----|-----|
+|[VGGT](3d_vision/vggt/README.md#一站式平台的快速启动)|基于PyTorch框架，在Atlas A2/A3环境中完成VGGT三维重建推理，针对一站式平台场景提供简化的启动流程，帮助用户快速上手完成一次端到端 NPU 推理体验。|
+
 
 ## 📖 目录结构说明
 
