@@ -76,6 +76,12 @@ pip install -r requirements.txt
 ```
 > 若提示`getopt`、`inspect`、`multiprocessing`缺失，是由于第三方工具包`op-compile-tool 0.1.0` 存在依赖声明缺陷，触发pip依赖解析器的虚假缺失依赖告警，该报错为非功能性异常，不影响任何代码执行。
 
+使能多卡并行训练性能优化代码，运行：
+```
+chmod +x auto_patch_config.sh
+./auto_patch_config.sh
+```
+
 编译项目代码：
 ```
 python build.py --backend mujoco
@@ -100,6 +106,16 @@ python scripts/train.py -r <ROBOT> -n <RUN_NAME>
 - g1_15dof.rough：15自由度，启用高程图，适用于崎岖地形、楼梯。
 
 在启动训练时，会创建`logs/<TASK_NAME>/<RUN_NAME>`文件夹保存权重。
+
+其中，昇腾A2上(32G显存)LQC人形机器人G1强化学习的多卡训练时间性能对比如下表所示：
+
+| num_cards (卡数量/张) | num_envs (所有卡mujoco物理仿真环境总数/个) | env step_time (仿真步进时间/秒) | observe_time (观测输入时间/秒) | agent infer_time (推理时间/秒) | update_time (模型更新时间/秒) | 单回合平均训练总时间/秒 | 相比单卡训练速度提升倍数 |
+|---|-------|------|------|------|-------|-------|-----|
+| 1 | 12288 | 5.14 | 1.08 | 0.67 | 11.02 | 17.93 | 1.0 |
+| 2 | 12288 | 4.70 | 1.21 | 0.49 | 5.26 | 11.67 | 1.5 |
+| 4 | 12288 | 4.45 | 1.45 | 0.41 | 3.49 | 9.82 | 1.8 |
+| 8 | 12288 | 4.26 | 1.55 | 0.37 | 2.80 | 9.00 | 2.0 |
+
 
 ## 推理
 

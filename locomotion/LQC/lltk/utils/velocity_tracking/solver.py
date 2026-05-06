@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import collections
 import gc
 import logging
@@ -198,8 +199,8 @@ class Solver:
             cfg['verbose'] = False
         if alg.CONFIG.ddp:
             cfg['num_envs'] = int(cfg['num_envs'] / alg.CONFIG.world_size)
-            if 'num_threads' in cfg:
-                cfg['num_threads'] = int(cfg['num_threads'] / alg.CONFIG.world_size)
+            cfg['num_threads'] = int(os.environ.get('OMP_NUM_THREADS',
+                                    max(1, os.cpu_count() // alg.CONFIG.world_size)))
 
         env = self.task.make_vec(cfg)
         env.set_interface_type('privileged')

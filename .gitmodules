@@ -1,0 +1,7 @@
+[submodule "locomotion/LQC/extern/exprtk"]
+    path = locomotion/LQC/extern/exprtk
+    url = https://github.com/ArashPartow/exprtk.git
+
+[submodule "locomotion/LQC/extern/EigenRand"]
+    path = locomotion/LQC/extern/EigenRand
+    url = https://github.com/bab2min/EigenRand.git
