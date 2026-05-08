@@ -1,6 +1,7 @@
 # Adapted from
 # https://github.com/NVIDIA/Isaac-GR00T
 # Copyright (c) 2026, HUAWEI CORPORATION.  All rights reserved.
+# Copyright (c) 2026, PSI-lab USC.  All rights reserved.
 # SPDX-FileCopyrightText: Copyright (c) 2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #

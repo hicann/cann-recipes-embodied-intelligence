@@ -25,7 +25,7 @@ Atlas A3 系列产品
    
    git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
    ```
-   制和替换cann-recipes-embodied-intelligence代码仓manipulation/Isaac-GR00T中所有文件到官方代码仓Isaac-GR00T中
+   复制和替换cann-recipes-embodied-intelligence代码仓manipulation/Isaac-GR00T中所有文件到官方代码仓Isaac-GR00T中
 
    ```
    cp -rf cann-recipes-embodied-intelligence/manipulation/Isaac-GR00T/* Isaac-GR00T
@@ -34,8 +34,18 @@ Atlas A3 系列产品
 
    
 3. 环境设置
-   
-   GR00T使用[uv](https://github.com/astral-sh/uv)实现快速且可重复的依赖管理。
+
+   本样例提供conda和uv两种环境管理方式进行环境配置。
+   ## conda管理
+   ```
+   conda create -n gr00t python=3.10 -y
+   conda activate gr00t
+   pip install -r requirements.txt
+   chmod +x set_conda_env.sh
+   ./set_conda_env.sh
+   ```
+
+   ## uv管理
    
    > 说明：解析`pyproject.toml`中的`[tool.uv.extra-build-dependencies]`  需要 uv v0.8.4+。
    
@@ -48,8 +58,12 @@ Atlas A3 系列产品
    安装环境所需的ffmpeg和decord库
    ```
    chmod +x setup.sh
-   sh ./setup.sh
+   ./setup.sh
    export LD_LIBRARY_PATH=$(pwd)/.venv/lib:$LD_LIBRARY_PATH
+   ```
+   安装decorator库：
+   ```
+   uv pip install decorator
    ```
    激活uv环境：
 
@@ -57,19 +71,36 @@ Atlas A3 系列产品
    source .venv/bin/activate
    ```
 
+
+
 # 推理执行
 
 1. 数据准备
-   * 本样例已在`demo_data`下提供样例数据集。
+   * `demo_data`下提供样例数据集，请确保您已经git完整的数据集。
    * 您也可以自行准备数据集，详情请参阅[数据准备指南 ](https://github.com/NVIDIA/Isaac-GR00T/blob/main/getting_started/data_preparation.md)。
 2. 快速推理
+
    准备好数据后，GR00T模型可使用以下脚本生成输出动作：
+
+   如果您使用的是conda进行环境配置，使用命令：
+
+   ```
+   python scripts/deployment/standalone_inference_script.py \
+     --model-path nvidia/GR00T-N1.6-3B \
+     --dataset-path demo_data/gr1.PickNPlace \
+     --embodiment-tag GR1 \
+     --traj-ids 2 \
+     --video-backend decord \
+     --seed 42 \
+     --action-horizon 8
+   ```
+   如果您使用uv进行环境管理，使用命令：
    ```
    uv run python scripts/deployment/standalone_inference_script.py \
      --model-path nvidia/GR00T-N1.6-3B \
      --dataset-path demo_data/gr1.PickNPlace \
      --embodiment-tag GR1 \
-     --traj-ids 0 1 2 \
+     --traj-ids 2 \
      --video-backend decord \
      --seed 42 \
      --action-horizon 8
@@ -105,5 +136,7 @@ Atlas A3 系列产品
 │   └── deployment
 │       ├── model_adaptor.py
 │       └── standalone_inference_script.py
-└── setup.sh
+├── requirements.txt
+├── setup.sh
+└── set_conda_env.sh
 ```

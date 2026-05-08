@@ -32,6 +32,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
+import torch_npu
 import tyro
 
 from gr00t.data.dataset.lerobot_episode_loader import LeRobotEpisodeLoader
@@ -41,8 +42,6 @@ from gr00t.policy.gr00t_policy import Gr00tPolicy
 from gr00t.policy.policy import BasePolicy
 import model_adaptor
 
-os.environ['TORCHDYNAMO_DISABLE'] = '1'
-os.environ['PYTORCH_DISABLE_DYNAMO'] = '1'
 
 warnings.simplefilter("ignore", category=FutureWarning)
 
@@ -51,17 +50,29 @@ Combined inference script supporting PyTorch mode.
 
 Example commands:
  
-# PyTorch mode (default):
+# uv mode:
 uv run python scripts/deployment/standalone_inference_script.py \
   --model-path nvidia/GR00T-N1.6-3B \
   --dataset-path demo_data/gr1.PickNPlace \
   --embodiment-tag GR1 \
-  --traj-ids 0 1 2 \
+  --traj-ids 0 \
+  --video-backend decord \
+  --seed 42 \
+  --action-horizon 8
+
+# conda mode:
+conda activate gr00t
+python scripts/deployment/standalone_inference_script.py \
+  --model-path nvidia/GR00T-N1.6-3B \
+  --dataset-path demo_data/gr1.PickNPlace \
+  --embodiment-tag GR1 \
+  --traj-ids 0 \
   --video-backend decord \
   --seed 42 \
   --action-horizon 8
 
 """
+
 
 def set_seed(seed: int = 0):
     """
@@ -537,12 +548,15 @@ def main(args: ArgsConfig):
             model_path=local_model_path,
             device="npu" if torch.npu.is_available() else "cpu",
         )
-
-        # PyTorch mode with torch.compile
-        policy.model.action_head.model.forward = torch.compile(
-            policy.model.action_head.model.forward, mode="max-autotune"
-        )
-        logging.info(" PyTorch mode enabled with torch.compile")
+        
+        if hasattr(policy.model, 'action_head') and hasattr(policy.model.action_head, 'model'):
+            policy.model.action_head.model = torch.compile(
+                policy.model.action_head.model,
+                backend="npugraphs",
+                fullgraph=True,
+                dynamic=False,
+            )
+            logging.info(" npugraphs mode enabled for action_head (dynamic=True)")
 
         if torch.cuda.is_available():
             torch.backends.cudnn.benchmark = True
@@ -578,8 +592,9 @@ def main(args: ArgsConfig):
     logging.info("\n" + "=" * 80)
     logging.info("=== Step 3: Running Evaluation ===")
     logging.info("=" * 80)
-    
+
     from adaptor_patches import modeling_siglip2_patch
+
     modeling_siglip2_patch.apply_patch()
 
     all_mse = []
@@ -693,3 +708,4 @@ if __name__ == "__main__":
     # Parse arguments using tyro
     config = tyro.cli(ArgsConfig)
     main(config)
+    
