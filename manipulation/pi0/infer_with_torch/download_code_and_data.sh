@@ -78,41 +78,72 @@ cp -f "${CANN_RECIPES_DIR}/manipulation/pi0/infer_with_torch/run_pi0_inference.s
 cp -f "${CANN_RECIPES_DIR}/manipulation/pi0/infer_with_torch/test_pi0_on_ascend.py" "${LEROBOT_DIR}/" || error "复制 test_pi0_on_ascend.py 失败"
 success "cann-recipes 文件复制成功！"
 
+
 # ===================== 步骤3：下载 koch_test 数据集 =====================
 cd "${LEROBOT_DIR}"
-progress "检查 Git LFS 是否已安装..."
-if command -v git-lfs &> /dev/null; then
-    info "Git LFS 已安装，跳过 apt 安装步骤"
-    git lfs install || error "Git LFS 初始化失败"
-else
-    info "Git LFS 未安装，尝试直接安装..."
-    # 先不更新 apt，直接安装 Git LFS
-    if apt install git-lfs -y &> /dev/null; then
-        info "Git LFS 直接安装成功"
-        git lfs install || error "Git LFS 初始化失败"
-    else
-        info "直接安装失败，尝试更新 apt 后重新安装..."
-        apt update -y &> /dev/null || error "apt 更新失败（安装 Git LFS 必需）"
-        apt install git-lfs -y &> /dev/null || error "Git LFS 安装失败"
-        git lfs install || error "Git LFS 初始化失败"
-    fi
+progress "开始下载 koch_test 数据集（一站式平台兼容方式）..."
+info "检查并安装依赖 huggingface_hub ..."
+pip install -U huggingface_hub &> /dev/null || error "huggingface_hub 安装失败"
+if [ -d "${KOCH_TEST_DIR}" ]; then
+  DIR_SIZE_MB=$(du -sm "${KOCH_TEST_DIR}" | cut -f1)
+  info "当前数据集大小：${DIR_SIZE_MB} MB"
+  if [ ${DIR_SIZE_MB} -ge 900 ]; then
+    info "数据集已完整，跳过下载"
+  else
+    info "数据集不完整，删除重新下载"
+    rm -rf "${KOCH_TEST_DIR}"
+  fi
 fi
 
-progress "开始拉取 koch_test 数据集..."
-if [ -d "${KOCH_TEST_DIR}" ]; then
-    info "koch_test 目录已存在，更新最新内容..."
-    cd "${KOCH_TEST_DIR}"
-    git pull || error "koch_test 数据集更新失败"
-else
-    git clone https://huggingface.co/datasets/danaaubakirova/koch_test "${KOCH_TEST_DIR}" || error "koch_test 数据集克隆失败"
-    cd "${KOCH_TEST_DIR}"
+if [ ! -d "${KOCH_TEST_DIR}" ]; then
+  python3 -c "import os; os.environ['HF_ENDPOINT']='https://hf-mirror.com';
+from huggingface_hub import snapshot_download;
+snapshot_download(
+repo_id='danaaubakirova/koch_test',
+repo_type='dataset',
+local_dir='${KOCH_TEST_DIR}'
+)" || error "koch_test 数据集下载失败"
 fi
-git lfs pull || error "koch_test 数据集 LFS 大文件拉取失败"
-success "koch_test 数据集下载成功！"
+success "koch_test 数据集（视频、图像、机械臂数据）下载成功！"
+
 
 # ===================== 步骤4：下载 pi0 模型权重 =====================
 cd "${LEROBOT_DIR}"
-progress "开始拉取/更新 pi0 模型仓库（跳过默认 LFS 下载）..."
+progress "检查 Git LFS 是否已安装..."
+
+# 提示信息（安装失败时显示）
+LFS_INSTALL_HELP="请参考 Git LFS 官网，根据你的主机CPU架构（arm64/x86_64）下载对应二进制版本手动安装：https://git-lfs.com/"
+
+if command -v git-lfs &> /dev/null; then
+    info "Git LFS 已安装，跳过 apt 安装步骤"
+    git lfs install || { error "Git LFS 初始化失败！${LFS_INSTALL_HELP}"; }
+else
+    info "Git LFS 未安装，尝试自动安装..."
+
+    # 尝试直接安装
+    if apt install git-lfs -y &> /dev/null; then
+        info "Git LFS 自动安装成功"
+        git lfs install || { error "Git LFS 初始化失败！${LFS_INSTALL_HELP}"; }
+    else
+        info "自动安装失败，尝试更新 apt 后安装..."
+
+        # 尝试更新apt
+        if ! apt update -y &> /dev/null; then
+            error "apt 更新失败！${LFS_INSTALL_HELP}"
+        fi
+
+        # 再次尝试安装
+        if ! apt install git-lfs -y &> /dev/null; then
+            error "Git LFS 自动安装失败！${LFS_INSTALL_HELP}"
+        fi
+
+        # 初始化
+        git lfs install || { error "Git LFS 初始化失败！${LFS_INSTALL_HELP}"; }
+    fi
+fi
+
+
+progress "开始拉取/更新 pi0 模型仓库（使用 git lfs 进行下载）..."
 
 if [ -d "${PI0_MODEL_DIR}" ]; then
     info "pi0_model 目录已存在，直接更新并切换到目标版本..."

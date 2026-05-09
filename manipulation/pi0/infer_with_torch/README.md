@@ -83,6 +83,48 @@ chmod +x run_pi0_inference.sh
 - 基于pi0模型推理得到的整段轨迹六关节角度序列(维度:50x6)，通过获取koch机械臂的物理DH参数，执行koch机械臂正运动学运算，得到koch机械臂末端执行器中心的实际位姿（位置x-y-z + 姿态r-p-y），然后通过ATE(absolute error)方法进行二范数计算，得到昇腾平台上koch机械臂末端位姿的误差参数，误差参考范围如下所示：
     - 位置ATE误差参考范围：[0, +0.03]m
     - 姿态ATE误差参考范围：[0, +0.2 ]rad
+
+<br>
+
+
+## gitcode云开发环境一站式平台的快速启动
+本章节面向使用一站式平台的用户，平台已预置完整的 昇腾CANN 环境，按以下步骤即可在单卡上完成 pi0 的torch版本昇腾推理。
+> 使用一站式平台的用户请选择A2/A3上的python3.12相关的实例进行创建。
+
+
+### 代码与权重准备
+```bash
+# 进入需要放置代码仓的本地目录下，如/mnt/workspace/gitCode/cann，可根据个人情况进行修改：
+cd /mnt/workspace/gitCode/cann
+
+git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
+
+chmod +x cann-recipes-embodied-intelligence/manipulation/pi0/infer_with_torch/download_code_and_data.sh
+
+./cann-recipes-embodied-intelligence/manipulation/pi0/infer_with_torch/download_code_and_data.sh
+```
+
+### 运行环境配置
+```bash
+# 创建运行环境
+conda create -y -n lerobot python=3.10
+conda activate lerobot
+
+# 回到lerobot根目录，安装lerobot。
+cd lerobot
+pip install -e .
+
+# 在lerobot运行环境中继续安装对应版本torch-npu
+pip install torch-npu==2.1.0.post12
+```
+
+### 推理脚本运行
+```bash
+# 确保lerobot代码仓根目录下，并已激活lerobot这个conda环境
+chmod +x run_pi0_inference.sh
+./run_pi0_inference.sh koch_test pi0_model 10 100
+```
+
 <br>
 
 
