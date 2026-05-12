@@ -94,7 +94,7 @@ python -c "from lltk import registry; print(registry.list_envs())"
 ### 模型资产准备
 在开始训练前，需要准备三维模型文件以供MuJoCo读取，本样例提供了包括宇树G1、GO2等不同自由度的模型物理模型文件，请[下载资产](https://cann-ai.obs.cn-north-4.myhuaweicloud.com/cann-recipes-embodied-intelligence/LQC/resources.tar)后解压放置在`./resources`下。
 
-## 训练
+## 单卡训练
 
 本样例使用以下命令启动训练，默认为`Headless`模式，在命令行中将打印训练信息：
 ```
@@ -107,7 +107,27 @@ python scripts/train.py -r <ROBOT> -n <RUN_NAME>
 
 在启动训练时，会创建`logs/<TASK_NAME>/<RUN_NAME>`文件夹保存权重。
 
-其中，昇腾A2上(32G显存)LQC人形机器人G1强化学习的多卡训练时间性能对比如下表所示：
+
+## 多卡训练
+### 多卡并行训练指令
+```bash
+# 以单机8卡训练为例
+export WANDB_MODE=disabled
+export MASTER_PORT=29999
+export ASCEND_RT_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+
+torchrun --nproc_per_node=8 scripts/train.py -r g1_15dof.rough
+```
+### 多卡并行训练环境变量详细说明
+| 环境变量 | 参数说明 | 使用作用 |
+| ---- | ---- | ---- |
+| `WANDB_MODE=disabled` | 关闭wandb在线日志 | 可选，如果无外网权限，禁用联网日志上传，避免启动报错 |
+| `MASTER_PORT=29999` | 分布式主进程端口 | PyTorch DDP多进程通信端口，保证节点内进程不冲突 |
+| `ASCEND_RT_VISIBLE_DEVICES` | 可见NPU卡号 | 指定本次训练启用的NPU卡号，示例启用0~7共8张卡 |
+| `nproc_per_node` | 单节点启动进程数 | 指定单节点上启动的训练进程数，需与可见NPU卡号数量保持一致，示例为启用8张卡并行训练 |
+
+### 多卡并行训练时间性能对比
+昇腾A2上(32G显存)LQC人形机器人G1强化学习的多卡训练时间性能对比如下表所示：
 
 | num_cards (卡数量/张) | num_envs (所有卡mujoco物理仿真环境总数/个) | env step_time (仿真步进时间/秒) | observe_time (观测输入时间/秒) | agent infer_time (推理时间/秒) | update_time (模型更新时间/秒) | 单回合平均训练总时间/秒 | 相比单卡训练速度提升倍数 |
 |---|-------|------|------|------|-------|-------|-----|
@@ -116,6 +136,7 @@ python scripts/train.py -r <ROBOT> -n <RUN_NAME>
 | 4 | 12288 | 4.45 | 1.45 | 0.41 | 3.49 | 9.82 | 1.8 |
 | 8 | 12288 | 4.26 | 1.55 | 0.37 | 2.80 | 9.00 | 2.0 |
 
+在上表中，`num_envs`在`cann-recipes-embodied-intelligence/locomotion/LQC/configs/<ROBOT>/env.yml`中进行定义，目前昇腾A2上(32G显存)单卡可以设置的最大`num_envs`建议为`12288`，如果设置更多可能会引发显存不足的问题。
 
 ## 推理
 
