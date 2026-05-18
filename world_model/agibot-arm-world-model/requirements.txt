@@ -1,0 +1,8 @@
+accelerate
+h5py
+matplotlib
+numpy
+opencv-python
+Pillow
+scipy
+tqdm

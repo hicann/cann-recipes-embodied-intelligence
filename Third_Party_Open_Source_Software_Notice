@@ -3010,6 +3010,7 @@ THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY EXPRE
 The views and conclusions contained in the software and documentation are those of the authors and should not be interpreted as representing official policies, either expressed or implied, of the FreeBSD Project.
 
 
+This whole project is not for commercial use and is not allowed to be used for commercial purposes.
 This project includes code snippets from the following open source projects:
 
 
@@ -3023,3 +3024,33 @@ Copyright Notice:
 Copyright 2025 The HuggingFace Inc. team. All rights reserved.
 License:
 Please see above
+
+
+Software: EnerVerse-AC
+Official Repository: https://github.com/AgibotTech/EnerVerse-AC
+Usage: "
+world_model/agibot-arm-world-model/train/src/common/lvdm/data/get_actions.py,
+world_model/agibot-arm-world-model/train/src/common/lvdm/data/utils.py,
+world_model/agibot-arm-world-model/train/src/common/lvdm/data/traj_vis_statistics.py,
+world_model/agibot-arm-world-model/infer_with_torch/src/common/lvdm/data/get_actions.py,
+world_model/agibot-arm-world-model/infer_with_torch/src/common/lvdm/data/utils.py,
+world_model/agibot-arm-world-model/infer_with_torch/src/common/lvdm/data/traj_vis_statistics.py
+"
+Copyright Notice:
+The original project is maintained by AgibotTech and contributors.
+This project is not for commercial use and is not allowed to be used for commercial purposes.
+License: Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)
+Full License Text:
+https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+
+
+Software: DiffSynth-Studio
+Official Repository: https://github.com/modelscope/DiffSynth-Studio.git
+Usage: "
+world_model/agibot-arm-world-model/train/src/train_fun_control_1_3b_text_49frames.py,
+As an additional module support
+"
+Copyright Notice:
+Copyright(c),2023, Zhongjie Duan
+License: Apache-2.0 license
+Full License Text: Please see above.
