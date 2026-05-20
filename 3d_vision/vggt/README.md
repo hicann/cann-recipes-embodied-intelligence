@@ -1,7 +1,7 @@
 # 在昇腾Atlas A2/A3环境上适配VGGT模型的推理
-本样例基于[VGGT开源模型](https://github.com/facebookresearch/vggt)完成其在NPU上的推理适配，并提供其在相机位姿估计、点云重建、深度估计三个任务上的精度评测脚本。详细内容可至[精度评测章节](https://gitcode.com/cann/cann-recipes-embodied-intelligence/blob/master/docs/3d_vision/vggt/vggt_accurancy_evaluation.md)查看。
+本样例基于[VGGT开源模型](https://github.com/facebookresearch/vggt)完成其在NPU上的推理适配，并提供其在相机位姿估计、点云重建、深度估计三个任务上的精度评测脚本。详细内容可至[精度评测章节](https://gitcode.com/cann/cann-recipes-embodied-ai/blob/master/docs/3d_vision/vggt/vggt_accurancy_evaluation.md)查看。
 
-此外，本样例基于VGGT模型在NPU进行了性能优化，目前VGGT模型在25张图片输入下，推理时间下降至1.12秒。详细内容可至[性能优化章节](https://gitcode.com/cann/cann-recipes-embodied-intelligence/blob/master/docs/3d_vision/vggt/vggt_optimization.md)查看。
+此外，本样例基于VGGT模型在NPU进行了性能优化，目前VGGT模型在25张图片输入下，推理时间下降至1.12秒。详细内容可至[性能优化章节](https://gitcode.com/cann/cann-recipes-embodied-ai/blob/master/docs/3d_vision/vggt/vggt_optimization.md)查看。
 
 本样例支持昇腾Atlas A2/A3环境的单机单卡推理与单机多卡序列并行推理。
 > 使用一站式平台的用户可直接跳转 [「一站式平台的快速启动」](#一站式平台的快速启动)章节。
@@ -27,7 +27,7 @@
   ```
 - 下载本仓库代码：
   ```shell
-  git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
+  git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
   ```
 - VGGT 模型权重下载：[VGGT model checkpoint](https://huggingface.co/spaces/facebook/vggt)，并将权重文件`model.pt`复制到ckpt目录下。：
   ```shell
@@ -37,16 +37,16 @@
   ```
 - 将VGGT仓库的网络模型文件以**非覆盖模式**复制到本项目目录下。
    ```shell
-  cp vggt/visual_util.py cann-recipes-embodied-intelligence/3d_vision/vggt/
-  cp -r vggt/examples cann-recipes-embodied-intelligence/3d_vision/vggt/
-  cp -rn vggt/vggt/dependency cann-recipes-embodied-intelligence/3d_vision/vggt/vggt/dependency
-  cp -rn vggt/vggt/heads cann-recipes-embodied-intelligence/3d_vision/vggt/vggt/
-  cp -rn vggt/vggt/layers cann-recipes-embodied-intelligence/3d_vision/vggt/vggt/
-  cp -rn vggt/vggt/utils cann-recipes-embodied-intelligence/3d_vision/vggt/vggt/ 
+  cp vggt/visual_util.py cann-recipes-embodied-ai/3d_vision/vggt/
+  cp -r vggt/examples cann-recipes-embodied-ai/3d_vision/vggt/
+  cp -rn vggt/vggt/dependency cann-recipes-embodied-ai/3d_vision/vggt/vggt/dependency
+  cp -rn vggt/vggt/heads cann-recipes-embodied-ai/3d_vision/vggt/vggt/
+  cp -rn vggt/vggt/layers cann-recipes-embodied-ai/3d_vision/vggt/vggt/
+  cp -rn vggt/vggt/utils cann-recipes-embodied-ai/3d_vision/vggt/vggt/ 
   ```
 - 安装Python依赖：
   ```shell
-  cd cann-recipes-embodied-intelligence/3d_vision/vggt/
+  cd cann-recipes-embodied-ai/3d_vision/vggt/
   pip3 install -r requirements.txt
   ```
 - 模型权重与模型结构在文件目录中罗列如下：
@@ -116,7 +116,7 @@ python demo_infer.py --ckpt VGGT_model_W8A8.pt --enableW8A8
 ### 代码与权重准备
 运行下列命令，一键拉起脚本，进行代码与权重的准备：
 ```bash
-cd cann-recipes-embodied-intelligence/3d_vision/vggt
+cd cann-recipes-embodied-ai/3d_vision/vggt
 bash infer_platform_env_prepare.sh
 ```
 ### 推理脚本运行

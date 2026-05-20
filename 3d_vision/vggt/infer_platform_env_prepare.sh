@@ -9,7 +9,7 @@ TARGET_DIR="${SCRIPT_DIR}"
 echo "[Info] 当前脚本目录: ${SCRIPT_DIR}"
 
 if [ "$(basename "${TARGET_DIR}")" != "vggt" ]; then
-    echo "[Error] 请将脚本放在 cann-recipes-embodied-intelligence/3d_vision/vggt 目录下执行"
+    echo "[Error] 请将脚本放在 cann-recipes-embodied-ai/3d_vision/vggt 目录下执行"
     exit 1
 fi
 

@@ -1,6 +1,7 @@
 # CANN Recipes for Embodied Intelligence
 
 ## 🚀 Latest News
+- [2026/05] 仓库已由 `cann-recipes-embodied-intelligence` 正式更名为 `cann-recipes-embodied-ai`，新地址：https://gitcode.com/CANN/cann-recipes-embodied-ai ，原有链接将自动跳转。
 - [2026/04] Hunyuan3D 2.0 三维生成与渲染模型在昇腾Atlas A2上[推理](3d_vision/Hunyuan3D)已支持，增加dit-cache方案优化，样例已开源。
 - [2026/04] PI0模型支持在昇腾Atlas A2上[训练](manipulation/pi0/train)，样例已开源。
 - [2026/04] SmolVLA模型支持在昇腾Atlas A2上[训练](manipulation/smolvla/train)，样例已开源。
@@ -21,7 +22,7 @@
 
 ## 🎉 概述
 
-cann-recipes-embodied-intelligence 仓库针对具身智能领域的典型模型和加速算法，提供基于 CANN 平台的优化样例。本仓库旨在帮助开发者快速、高效地在昇腾平台上部署和优化具身智能模型，降低开发门槛，加速应用落地。
+cann-recipes-embodied-ai 仓库针对具身智能领域的典型模型和加速算法，提供基于 CANN 平台的优化样例。本仓库旨在帮助开发者快速、高效地在昇腾平台上部署和优化具身智能模型，降低开发门槛，加速应用落地。
 
 **核心特性：**
 - 覆盖操作类（Manipulation）、世界模型（World Model）、导航（Navigation）、运动控制（Locomotion）、3D视觉（3D Vision）等典型场景
@@ -98,7 +99,7 @@ cann-recipes-embodied-intelligence 仓库针对具身智能领域的典型模型
 
 ## 🏃 一站式平台快速体验
 
-「一站式平台」是为开发者提供的 NPU 环境，内部已集成完整的 CANN 环境，可以直接使用。cann-recipes-embodied-intelligence 针对该平台在相应样例 README 中提供了简化的「快速启动」路径，帮助用户最小步骤完成 NPU 推理体验。当前支持的模型正在持续扩展中，敬请关注：
+「一站式平台」是为开发者提供的 NPU 环境，内部已集成完整的 CANN 环境，可以直接使用。cann-recipes-embodied-ai 针对该平台在相应样例 README 中提供了简化的「快速启动」路径，帮助用户最小步骤完成 NPU 推理体验。当前支持的模型正在持续扩展中，敬请关注：
 
 |实践|简介|
 |-----|-----|
@@ -156,6 +157,6 @@ cann-recipes-embodied-intelligence 仓库针对具身智能领域的典型模型
 - [贡献指南](./CONTRIBUTION.md)
 - [许可证](./LICENSE)
 
-    cann-recipes-embodied-intelligence仓涉及的模型，如模型目录下存在License的以该License为准。如模型目录下不存在License的，遵循Apache 2.0许可证。
+    cann-recipes-embodied-ai仓涉及的模型，如模型目录下存在License的以该License为准。如模型目录下不存在License的，遵循Apache 2.0许可证。
 
 - [免责声明](./DISCLAIMER.md)

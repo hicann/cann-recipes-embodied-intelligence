@@ -45,8 +45,8 @@ manipulation/pi0/train/
 ### 4.1 clone 代码
 
 ```bash
-git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
-cd cann-recipes-embodied-intelligence
+git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
+cd cann-recipes-embodied-ai
 ```
 
 ### 4.2 准备 `lerobot`
@@ -95,7 +95,7 @@ chmod +x manipulation/pi0/train/src/scripts/setup.sh
 
 ```text
 <workspace>/
-├── cann-recipes-embodied-intelligence/
+├── cann-recipes-embodied-ai/
 ├── lerobot/
 ├── dataset/
 │   └── HuggingFaceVLA/
@@ -262,7 +262,7 @@ libero_10任务示例
 ### 查看训练日志
 
 ```bash
-# 以下路径以推荐工作区中的 `cann-recipes-embodied-intelligence/` 目录为起点
+# 以下路径以推荐工作区中的 `cann-recipes-embodied-ai/` 目录为起点
 cd ../lerobot
 tail -f ../ckpt/logs/train_pi0_libero_*.log
 ```

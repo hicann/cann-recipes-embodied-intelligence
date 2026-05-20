@@ -88,10 +88,10 @@ source ${cann_install_path}/ascend-toolkit/set_env.sh
 
 ```bash
 # 1) 拉取 GitCode 本 PI0 使用仓库并切换指定分支
-git clone https://gitcode.com/CANN/cann-recipes-embodied-intelligence.git
+git clone https://gitcode.com/CANN/cann-recipes-embodied-ai.git
 
 # 2) 拉取 lerobot 仓库并切到指定 **commit**
-cd cann-recipes-embodied-intelligence/manipulation
+cd cann-recipes-embodied-ai/manipulation
 git clone https://github.com/huggingface/lerobot.git  # **如果contrib下没有lerobot目录**
 cd lerobot
 git checkout 577cd10974b84bea1f06b6472eb9e5e74e07f77a

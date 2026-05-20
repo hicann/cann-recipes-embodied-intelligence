@@ -24,8 +24,8 @@ AR-1是英伟达提出的面向L4/L5级智能驾驶的视觉-语言-动作（VLA
     ```
 3. 克隆代码
     ```bash
-    # 克隆cann-recipes-embodied-intelligence项目代码
-    git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
+    # 克隆cann-recipes-embodied-ai项目代码
+    git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
     
     # 克隆alpamayo原仓库代码
     git clone https://github.com/NVlabs/alpamayo.git
@@ -34,11 +34,11 @@ AR-1是英伟达提出的面向L4/L5级智能驾驶的视觉-语言-动作（VLA
     cd ..
 
     # 应用适配昇腾A2的patch
-    patch -p0 < cann-recipes-embodied-intelligence/navigation/alpamayo-r1/patches/ar-1.patch
+    patch -p0 < cann-recipes-embodied-ai/navigation/alpamayo-r1/patches/ar-1.patch
 
     # 将原仓库alpamayo的代码复制到本项目目录下
-    cp -rn alpamayo/* cann-recipes-embodied-intelligence/navigation/alpamayo-r1/
-    cd cann-recipes-embodied-intelligence/navigation/alpamayo-r1
+    cp -rn alpamayo/* cann-recipes-embodied-ai/navigation/alpamayo-r1/
+    cd cann-recipes-embodied-ai/navigation/alpamayo-r1
     ```
 4. 创建虚拟环境
     ```bash

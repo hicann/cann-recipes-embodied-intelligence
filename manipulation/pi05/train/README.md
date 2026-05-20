@@ -71,23 +71,23 @@
 
 ```bash
 cd <your-workdir>
-git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
-chmod +x cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts/setup.sh
-./cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts/setup.sh
+git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
+chmod +x cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts/setup.sh
+./cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts/setup.sh
 ```
 
 网络受限环境可先指定 CMake 国内镜像备用地址（默认已内置清华镜像，可按需覆盖）：
 
 ```bash
 export CMAKE3_MIRROR_URL="https://mirrors.tuna.tsinghua.edu.cn/kitware/cmake/v3.28/cmake-3.28.3.tar.gz"
-./cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts/setup.sh
+./cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts/setup.sh
 ```
 
 默认目录关系如下：
 
 ```bash
 <your-workdir>/
-├── cann-recipes-embodied-intelligence/
+├── cann-recipes-embodied-ai/
 └── lerobot/
 ```
 
@@ -148,14 +148,14 @@ python -m pip install -e . --no-build-isolation -v
 推荐训练命令：
 
 ```bash
-cd cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts
+cd cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts
 ./run_train.sh pi05 --nproc 2 --disable-outer-suffix-checkpoint
 ```
 
 推荐 profiling 命令：
 
 ```bash
-cd cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts
+cd cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts
 ./run_profiling.sh pi05 \
   --nproc 2 \
   --foreground \
@@ -185,7 +185,7 @@ cd cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts
 确保已激活包含 `lerobot` 和 PyTorch 的 conda 环境，并完成 Ascend 驱动与 CANN 环境配置后，执行以下命令：
 
 ```bash
-cd cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts
+cd cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts
 chmod +x run_eval.sh
 ./run_eval.sh
 ```
@@ -249,7 +249,7 @@ chmod +x run_eval.sh
 ### 正确安装后项目文件结构
 
 ```bash
-├── cann-recipes-embodied-intelligence/     # CANN 具身智能案例仓库主目录
+├── cann-recipes-embodied-ai/     # CANN 具身智能案例仓库主目录
 │   └── manipulation/
 │       └── pi05/
 │           └── train/                      # pi05 模型昇腾训推项目目录

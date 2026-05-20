@@ -44,8 +44,8 @@ manipulation/act/train/
 ### 4.1 clone 代码
 
 ```bash
-git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
-cd cann-recipes-embodied-intelligence
+git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
+cd cann-recipes-embodied-ai
 ```
 
 ### 4.2 准备 `lerobot`
@@ -103,7 +103,7 @@ chmod +x manipulation/act/train/src/scripts/setup.sh
 
 ```text
 <workspace>/
-├── cann-recipes-embodied-intelligence/
+├── cann-recipes-embodied-ai/
 ├── lerobot/
 ├── dataset/
 │   └── lerobot/
@@ -252,4 +252,4 @@ tail -f ../ckpt/logs/train_act_aloha_*.log
 ## 10. 相关说明
 - 本样例目录不包含 `lerobot` 源码；
 - 若后续需要扩展到其他 ALOHA 数据集，可新增新的 YAML。
-- 样例参考 https://gitcode.com/cann/cann-recipes-embodied-intelligence/blob/master/manipulation/pi05/train/README.md
+- 样例参考 https://gitcode.com/cann/cann-recipes-embodied-ai/blob/master/manipulation/pi05/train/README.md

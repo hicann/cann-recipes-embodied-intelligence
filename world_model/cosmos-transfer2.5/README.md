@@ -37,7 +37,7 @@ git lfs --version
 ```
 ```bash
 # 进入需要放置代码仓的本地目录下,执行下面的指令进行代码拉取替换：
-git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
+git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
 
 git clone https://github.com/nvidia-cosmos/cosmos-transfer2.5.git && cd cosmos-transfer2.5 && git checkout 8b0e6af4b3bed40408c5762e528cb4e2a233f278
 
@@ -46,7 +46,7 @@ git lfs pull
 # 回退到放置代码仓的本地目录
 cd ../
 
-cp -rf cann-recipes-embodied-intelligence/world_model/cosmos-transfer2.5/* ./cosmos-transfer2.5
+cp -rf cann-recipes-embodied-ai/world_model/cosmos-transfer2.5/* ./cosmos-transfer2.5
 ```
 完成上述操作之后，最终cosmos-transfer2.5根目录中相关代码目录树详见[附录：根目录相关代码目录树](#根目录相关代码目录树)。
 <br>

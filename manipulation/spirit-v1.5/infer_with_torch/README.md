@@ -12,7 +12,7 @@ Spirit v1.5是由千寻智能自研的具身智能模型，在2026.1.12的RoboCh
 
 ## 代码与权重准备
 
-1. 拉取本代码仓：`git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git`
+1. 拉取本代码仓：`git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git`
 
 
 2. 从千寻智能官方开源的代码仓拉取源码：`git clone https://github.com/Spirit-AI-Team/spirit-v1.5.git`

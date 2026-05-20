@@ -230,7 +230,7 @@ main() {
     parse_args "$@"
 
     ROOT_DIR="$(pwd)"
-    CANN_RECIPES_DIR="${ROOT_DIR}/cann-recipes-embodied-intelligence"
+    CANN_RECIPES_DIR="${ROOT_DIR}/cann-recipes-embodied-ai"
     if [[ -n "${CUSTOM_LEROBOT_DIR}" ]]; then
         LEROBOT_DIR="${CUSTOM_LEROBOT_DIR}"
     else
@@ -266,10 +266,10 @@ main() {
     check_command "pip"
 
     if [[ ! -d "${CANN_RECIPES_DIR}" ]]; then
-        info "未检测到 cann-recipes-embodied-intelligence 目录，开始自动克隆..."
-        git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git "${CANN_RECIPES_DIR}" || error "CANN Recipes 仓库克隆失败"
+        info "未检测到 cann-recipes-embodied-ai 目录，开始自动克隆..."
+        git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git "${CANN_RECIPES_DIR}" || error "CANN Recipes 仓库克隆失败"
     else
-        info "检测到 cann-recipes-embodied-intelligence 目录已存在"
+        info "检测到 cann-recipes-embodied-ai 目录已存在"
     fi
 
     check_path "${CANN_RECIPES_DIR}/manipulation/pi05/train/src/modeling_pi05.py" "file" "Pi05 核心模型文件缺失"

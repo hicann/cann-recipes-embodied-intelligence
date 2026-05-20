@@ -23,12 +23,12 @@ Atlas A3 系列产品
    git checkout e29d8fc50b0e4745120ae3fb72447986fe638aa6
    cd ..
    
-   git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
+   git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
    ```
-   复制和替换cann-recipes-embodied-intelligence代码仓manipulation/Isaac-GR00T中所有文件到官方代码仓Isaac-GR00T中
+   复制和替换cann-recipes-embodied-ai代码仓manipulation/Isaac-GR00T中所有文件到官方代码仓Isaac-GR00T中
 
    ```
-   cp -rf cann-recipes-embodied-intelligence/manipulation/Isaac-GR00T/* Isaac-GR00T
+   cp -rf cann-recipes-embodied-ai/manipulation/Isaac-GR00T/* Isaac-GR00T
    cd Isaac-GR00T
    ```
 

@@ -21,7 +21,7 @@ WORKSPACE_ROOT="$(cd "$RECIPE_REPO_ROOT/.." && pwd)"
 LEROBOT_ROOT="${LEROBOT_ROOT:-$WORKSPACE_ROOT/lerobot}"
 COMMON_PATCH_PATH="$SCRIPT_DIR/../patches/lerobot_ascend_train_common.patch"
 PI0_PATCH_PATH="$SCRIPT_DIR/../patches/lerobot_pi0_ascend.patch"
-LEROBOT_COMMIT="58f70b6bd370864139a3795ac3497a9eae8c42d5"  # 2025-11-27 commit, 与cann-recipes-embodied-intelligence仓库中pi05,act等相关模型一致，若采用更新版本commit可修改相应patch脚本进行匹配。
+LEROBOT_COMMIT="58f70b6bd370864139a3795ac3497a9eae8c42d5"  # 2025-11-27 commit, 与cann-recipes-embodied-ai仓库中pi05,act等相关模型一致，若采用更新版本commit可修改相应patch脚本进行匹配。
 
 CREATE_CONDA=false
 ENV_NAME="lerobot-pi0"

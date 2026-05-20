@@ -18,9 +18,9 @@ pi0.5，一种基于pi0的新模型；它通过在异构任务上进行协同训
 ```bash
 # 进入需要放置代码仓的本地xxx目录下：
 cd xxx
-git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
-chmod +x cann-recipes-embodied-intelligence/manipulation/pi05/infer_with_torch/download_code_and_data.sh
-./cann-recipes-embodied-intelligence/manipulation/pi05/infer_with_torch/download_code_and_data.sh
+git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
+chmod +x cann-recipes-embodied-ai/manipulation/pi05/infer_with_torch/download_code_and_data.sh
+./cann-recipes-embodied-ai/manipulation/pi05/infer_with_torch/download_code_and_data.sh
 ```
 完成上述操作之后，最终lerobot根目录中相关代码目录树详见[附录：lerobot根目录相关代码目录树](#lerobot根目录相关代码目录树)。
 

@@ -140,10 +140,10 @@ export HF_ENDPOINT=https://hf-mirror.com
 #### 与昇腾服务器无关的环境配置（导出 ONNX 与 CPU 验证）
 ```bash
 # 1) 拉取 GitCode 本 PI05 使用仓库并切换指定分支
-git clone https://gitcode.com/CANN/cann-recipes-embodied-intelligence.git
+git clone https://gitcode.com/CANN/cann-recipes-embodied-ai.git
 
 # 2) 拉取 lerobot 仓库并切到指定 **commit**
-cd cann-recipes-embodied-intelligence/manipulation
+cd cann-recipes-embodied-ai/manipulation
 git clone https://github.com/huggingface/lerobot.git  # **如果contrib下没有lerobot目录**
 cd lerobot
 git checkout 58f70b6bd370864139a3795ac3497a9eae8c42d5

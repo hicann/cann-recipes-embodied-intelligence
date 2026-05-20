@@ -21,15 +21,15 @@
    ```
 2. Download the code of this repository:
    ```shell
-   git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
+   git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
    ```
 3. Copy the code from the VGGT repository to this project directory in non-overwrite mode:
     ```shell
-    cp -r vggt/examples cann-recipes-embodied-intelligence/3d_vision/vggt/
-    cp -rn vggt/vggt/dependency cann-recipes-embodied-intelligence/3d_vision/vggt/vggt/dependency
-    cp -rn vggt/vggt/heads cann-recipes-embodied-intelligence/3d_vision/vggt/vggt/
-    cp -rn vggt/vggt/layers cann-recipes-embodied-intelligence/3d_vision/vggt/vggt/
-    cp -rn vggt/vggt/utils cann-recipes-embodied-intelligence/3d_vision/vggt/vggt/ 
+    cp -r vggt/examples cann-recipes-embodied-ai/3d_vision/vggt/
+    cp -rn vggt/vggt/dependency cann-recipes-embodied-ai/3d_vision/vggt/vggt/dependency
+    cp -rn vggt/vggt/heads cann-recipes-embodied-ai/3d_vision/vggt/vggt/
+    cp -rn vggt/vggt/layers cann-recipes-embodied-ai/3d_vision/vggt/vggt/
+    cp -rn vggt/vggt/utils cann-recipes-embodied-ai/3d_vision/vggt/vggt/ 
     ```
 4. Install Python dependencies:
     ```shell

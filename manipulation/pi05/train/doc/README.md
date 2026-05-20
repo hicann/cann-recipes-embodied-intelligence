@@ -41,14 +41,14 @@
 训练推荐命令如下：
 
 ```bash
-cd cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts
+cd cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts
 ./run_train.sh pi05 --nproc 2 --disable-outer-suffix-checkpoint
 ```
 
 如果需要重新采样 profiling，推荐使用如下短窗口命令，能够较快拿到稳定阶段的热点分布：
 
 ```bash
-cd cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts
+cd cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts
 ./run_profiling.sh pi05 \
   --nproc 2 \
   --foreground \
@@ -67,16 +67,16 @@ cd cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts
 
 ```bash
 cd <your-workdir>
-git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
-chmod +x cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts/setup.sh
-./cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts/setup.sh
+git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
+chmod +x cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts/setup.sh
+./cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts/setup.sh
 ```
 
 2. 激活环境并进入脚本目录。
 
 ```bash
 conda activate lerobot
-cd <your-workdir>/cann-recipes-embodied-intelligence/manipulation/pi05/train/src/scripts
+cd <your-workdir>/cann-recipes-embodied-ai/manipulation/pi05/train/src/scripts
 ```
 
 3. 首次训练前，如模型权重和数据集已经缓存到本地，可显式启用离线模式，避免远端探测影响启动时间；如果尚未缓存，则不要打开这三个环境变量。

@@ -49,7 +49,7 @@ git lfs --version
 
 ```bash
 # 进入需要放置代码仓的本地目录下,执行下面的指令进行代码拉取替换：
-git clone https://gitcode.com/cann/cann-recipes-embodied-intelligence.git
+git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
 
 git clone https://github.com/nvidia-cosmos/cosmos-predict2.5.git && cd cosmos-predict2.5 && git checkout 173b0fe980ab572f17c13258b775271f897b90ed
 
@@ -59,8 +59,8 @@ git lfs pull
 # 回退到放置代码仓的本地目录
 cd ../
 
-# 复制和替换cann-recipes-embodied-intelligence代码仓cosmos-predict2.5中所有文件到官方代码仓cosmos-predict2.5中
-\cp -rf cann-recipes-embodied-intelligence/world_model/cosmos-predict2.5/* ./cosmos-predict2.5
+# 复制和替换cann-recipes-embodied-ai代码仓cosmos-predict2.5中所有文件到官方代码仓cosmos-predict2.5中
+\cp -rf cann-recipes-embodied-ai/world_model/cosmos-predict2.5/* ./cosmos-predict2.5
 ```
 完成上述操作之后，最终cosmos-predict2.5根目录中相关代码目录树详见[附录：根目录相关代码目录树](#根目录相关代码目录树)。
 

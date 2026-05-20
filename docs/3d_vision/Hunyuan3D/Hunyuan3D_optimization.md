@@ -226,7 +226,7 @@ python minimal_demo_npu.py  --cache_config './hy3dgen/cache/cache_config.json'  
 ```
 - **框架位置：** 使用dit_cache作为自定义库，dit_cache方案插入逻辑如下：
 ```  
-    cann-recipes-embodied-intelligence
+    cann-recipes-embodied-ai
         +--- module #公共优化模块
         |   +--- dit_cache #Dit_Cache通用方案核心位置
         |       +--- __init__.py #初始化
