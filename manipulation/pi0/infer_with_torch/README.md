@@ -16,9 +16,7 @@ pi0是一个视觉-语言-动作（VLA）模型，专为通用机器人控制而
 
 ## pi0的相关代码仓拉取、数据集和模型下载
 ```bash
-# 进入需要放置代码仓的本地xxx目录下：
-cd xxx
-
+# 进入需要放置代码仓的本地目录下，执行下面的指令：
 git clone https://gitcode.com/cann/cann-recipes-embodied-ai.git
 
 chmod +x cann-recipes-embodied-ai/manipulation/pi0/infer_with_torch/download_code_and_data.sh
