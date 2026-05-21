@@ -1,8 +1,10 @@
-# 在昇腾训练平台上适配Hunyuan3D 2.0 模型的推理
+# 在昇腾Atlas A2平台上适配Hunyuan3D 2.0 模型的推理
 
 Hunyuan3D模型是腾讯混元系列在2025年推出的一款3D资产创作模型，用于生成带有高分辨率纹理贴图的高保真度3D模型，本项目旨在提供Hunyuan3D的NPU适配版本，方便用户能够在昇腾生态上直接使用Hunyuan3D。
 
 此外，本样例基于Hunyuan3D模型在NPU进行了性能优化，目前texgen在2万平面mesh网格输入下，推理时间降至26秒。详细内容可至[性能优化章节](../../docs/3d_vision/Hunyuan3D/Hunyuan3D_optimization.md)进行查看。
+
+本样例支持在昇腾Atlas A2环境的单机单卡推理。
 
 ## 执行样例
 
