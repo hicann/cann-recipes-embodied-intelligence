@@ -1,9 +1,16 @@
 * Copyright (c) 2025 Huawei Technologies Co., Ltd.
-* This program is free software, you can redistribute it and/or modify it under the terms and conditions of
-* CANN Open Software License Agreement Version 2.0 (the "License").
-* Please refer to the License for details. You may not use this file except in compliance with the License.
-* THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
-* See LICENSE in the root of the software repository for the full text of the License.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
 
 
 OPEN SOURCE SOFTWARE NOTICE
@@ -3053,4 +3060,72 @@ As an additional module support
 Copyright Notice:
 Copyright(c),2023, Zhongjie Duan
 License: Apache-2.0 license
+Full License Text: Please see above.
+
+
+Software: gsplat
+Official Repository: https://github.com/nerfstudio-project/gsplat
+Usage: "
+3d_vision/gaussian_splatting/datasets/colmap.py,
+3d_vision/gaussian_splatting/datasets/download_dataset.py,
+3d_vision/gaussian_splatting/datasets/normalize.py,
+3d_vision/gaussian_splatting/gsplat/distributed.py,
+3d_vision/gaussian_splatting/gsplat/utils.py,
+3d_vision/gaussian_splatting/rasterization/config.py,
+3d_vision/gaussian_splatting/rasterization/rasterizer.py,
+3d_vision/gaussian_splatting/rasterization/runner.py,
+3d_vision/gaussian_splatting/rasterization/utils.py,
+3d_vision/gaussian_splatting/train.py,
+3d_vision/gaussian_splatting/train_all.sh,
+ops/ascendc/tests/test_projection_3dgs_bwd.py,
+ops/ascendc/tests/test_projection_3dgs_forward.py,
+ops/ascendc/tests/test_spherical_harmonics.py
+"
+Copyright Notice:
+Copyright (c) 2024-2025 the Regents of the University of California, Nerfstudio Team and contributors. All rights reserved.
+License: Apache License V2.0
+Full License Text: Please see above.
+
+
+Software: DrivingSDK 1.0.0
+Official Repository: https://gitcode.com/Ascend/DrivingSDK
+Usage: "
+ops/ascendc/CMakeLists.txt,
+ops/ascendc/CMakePresets.json,
+ops/ascendc/setup.py,
+ops/ascendc/pyproject.toml,
+ops/ascendc/cmake/config.cmake,
+ops/ascendc/cmake/func.cmake,
+ops/ascendc/cmake/intf.cmake,
+ops/ascendc/cmake/makeself.cmake,
+ops/ascendc/kernels/CMakeLists.txt,
+ops/ascendc/cmake/util/__init__.py,
+ops/ascendc/cmake/util/ascendc_bin_param_build.py,
+ops/ascendc/cmake/util/ascendc_impl_build.py,
+ops/ascendc/cmake/util/ascendc_ops_config.py,
+ops/ascendc/cmake/util/ascendc_replay_build.py,
+ops/ascendc/cmake/util/code_channel_infer.py,
+ops/ascendc/cmake/util/const_var.py,
+ops/ascendc/cmake/util/insert_op_info.py,
+ops/ascendc/cmake/util/insert_simplified_keys.py,
+ops/ascendc/cmake/util/kernel_entry.py,
+ops/ascendc/cmake/util/opdesc_parser.py,
+ops/ascendc/cmake/util/parse_ini_to_json.py,
+ops/ascendc/cmake/util/preset_parse.py,
+ops/ascendc/cmake/util/replay_codegen.py,
+ops/ascendc/cmake/util/tiling_data_def_build.py,
+ops/ascendc/scripts/build_kernel.sh,
+ops/ascendc/scripts/install_kernel.sh,
+ops/ascendc/scripts/retry.sh,
+ops/ascendc/cmake/util/gen_impl_and_mrege_json.sh,
+ops/ascendc/cmake/util/gen_version_info.sh,
+ops/ascendc/cmake/util/merge_aicpu_info_json.sh,
+ops/ascendc/cmake/util/gen_ops_filter.sh,
+ops/ascendc/cmake/util/batch_replay_impl.temp,
+ops/ascendc/cmake/util/kernel_impl.temp,
+ops/ascendc/cmake/util/replay_impl.temp
+"
+Copyright Notice:
+Copyright (c) Huawei Technologies Co., Ltd. All rights reserved.
+License: Apache License V2.0
 Full License Text: Please see above.
